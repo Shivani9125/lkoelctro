@@ -23,8 +23,9 @@ RUN apk add --no-cache \
     sqlite-dev \
     libpng-dev \
     oniguruma-dev \
+    libxml2-dev \
     dos2unix \
-    && docker-php-ext-install pdo pdo_sqlite mbstring bcmath
+    && docker-php-ext-install pdo pdo_sqlite mbstring bcmath xml
 
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
@@ -40,8 +41,9 @@ RUN cp .env.example .env
 # Copy built React frontend assets into Laravel's public directory
 COPY --from=frontend-builder /app/frontend/dist ./public/app
 
-# Install PHP dependencies without dev packages
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+# Install PHP dependencies safely
+RUN composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-reqs --no-scripts \
+    && composer dump-autoload --optimize --no-dev
 
 # Create necessary directories and set permissions
 RUN mkdir -p database storage/framework/sessions storage/framework/views storage/framework/cache storage/logs bootstrap/cache \

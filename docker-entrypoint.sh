@@ -6,6 +6,8 @@ if [ -z "$APP_KEY" ]; then
     php artisan key:generate --force
 fi
 
+php artisan package:discover --ansi
+
 # Ensure database directory and sqlite file exist with write permissions
 mkdir -p /var/www/html/database
 touch /var/www/html/database/database.sqlite
