@@ -35,15 +35,14 @@ WORKDIR /var/www/html
 # Copy Laravel backend code
 COPY electrician-app/backend ./
 
-# Ensure .env exists from example
-RUN cp .env.example .env
+# Ensure .env exists from example and clean any stale bootstrap cache
+RUN cp .env.example .env && rm -f bootstrap/cache/*.php
 
 # Copy built React frontend assets into Laravel's public directory
 COPY --from=frontend-builder /app/frontend/dist ./public/app
 
 # Install PHP dependencies safely
-RUN composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-reqs --no-scripts \
-    && composer dump-autoload --optimize --no-dev
+RUN composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-reqs
 
 # Create necessary directories and set permissions
 RUN mkdir -p database storage/framework/sessions storage/framework/views storage/framework/cache storage/logs bootstrap/cache \
