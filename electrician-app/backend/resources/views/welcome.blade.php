@@ -1184,7 +1184,7 @@
             transform: scale(1.18);
         }
 
-        /* Responsive Breakpoints */
+        /* Responsive Breakpoints & Mobile Optimization */
         @media (max-width: 992px) {
             .hero-grid {
                 grid-template-columns: 1fr;
@@ -1192,6 +1192,7 @@
             }
             .map-layout {
                 grid-template-columns: 1fr;
+                gap: 20px;
             }
             .services-grid {
                 grid-template-columns: repeat(2, 1fr);
@@ -1201,34 +1202,372 @@
             }
             .footer-grid {
                 grid-template-columns: repeat(2, 1fr);
+            }
+            .map-search-bar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+            .location-status {
+                flex-wrap: wrap;
+                justify-content: space-between;
+                white-space: normal;
             }
         }
 
         @media (max-width: 640px) {
+            body {
+                padding-bottom: 74px; /* Room for sticky mobile bottom action bar */
+                overflow-x: hidden;
+            }
+            .container {
+                padding: 0 16px;
+            }
+            .navbar {
+                box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+            }
+            .navbar-content {
+                height: 58px;
+            }
+            .brand-logo {
+                font-size: 18px;
+                gap: 8px;
+            }
+            .brand-icon {
+                width: 32px;
+                height: 32px;
+                border-radius: 8px;
+            }
+            .brand-icon svg {
+                width: 18px;
+                height: 18px;
+            }
             .nav-links {
                 display: none;
             }
+            .emergency-badge {
+                display: none; /* Hide on small mobile to give room to call/find button */
+            }
+            .nav-actions .btn {
+                padding: 6px 12px;
+                font-size: 12px;
+                border-radius: 6px;
+            }
+            .hero {
+                padding: 24px 0 20px;
+            }
+            .hero-tag {
+                font-size: 11px;
+                padding: 5px 10px;
+                margin-bottom: 12px;
+                display: inline-flex;
+            }
             .hero-title {
-                font-size: 34px;
+                font-size: 26px;
+                line-height: 1.22;
+                margin-bottom: 10px;
+            }
+            .hero-subtitle {
+                font-size: 14px;
+                line-height: 1.5;
+                margin-bottom: 18px;
+            }
+            .trust-badges {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+                margin-top: 14px;
+            }
+            .trust-item {
+                font-size: 12px;
+            }
+            .search-box-card {
+                padding: 14px;
+                border-radius: 12px;
+                box-shadow: var(--shadow-md);
             }
             .search-form-row {
                 grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            .input-wrapper {
+                padding: 8px 12px;
+            }
+            .input-wrapper input,
+            .input-wrapper select {
+                font-size: 14px;
+            }
+            .btn-detect-loc {
+                padding: 6px 10px;
+                font-size: 11px;
+            }
+            .btn-search {
+                width: 100%;
+                min-height: 48px;
+                font-size: 15px;
+                justify-content: center;
+                border-radius: 8px;
+                margin-top: 4px;
+            }
+            .hero-visual {
+                margin-top: 10px;
+            }
+            .visual-card {
+                padding: 20px 16px;
+                border-radius: 14px;
+            }
+            .visual-header {
+                font-size: 20px;
+            }
+            .visual-sub {
+                font-size: 13px;
+                margin-bottom: 18px;
+            }
+            .quick-metrics {
+                gap: 8px;
+                padding-top: 14px;
+            }
+            .metric-box h4 {
+                font-size: 18px;
+            }
+            .metric-box p {
+                font-size: 11px;
+            }
+            .floating-notification {
+                position: static;
+                margin-top: 14px;
+                left: auto;
+                bottom: auto;
+                width: 100%;
+                box-sizing: border-box;
+                animation: none;
+                padding: 10px 14px;
+            }
+            .map-section {
+                padding: 36px 0;
+            }
+            .section-header {
+                margin-bottom: 20px;
+            }
+            .section-title {
+                font-size: 22px;
+                line-height: 1.25;
+            }
+            .section-subtitle {
+                font-size: 13px;
+                line-height: 1.5;
+            }
+            .map-search-bar {
+                padding: 12px;
+                border-radius: 12px;
+                margin-bottom: 14px;
+            }
+            .map-search-left input {
+                font-size: 14px;
+            }
+            .location-status {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+                width: 100%;
+            }
+            .location-status button {
+                width: 100%;
+                justify-content: center;
+                padding: 10px;
+                font-size: 13px;
+                border-radius: 8px;
+            }
+            .area-switcher-bar {
+                padding: 4px 0 10px;
+                margin-bottom: 12px;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+            }
+            .area-switcher-bar::-webkit-scrollbar {
+                display: none;
+            }
+            .area-pill {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+            .map-wrapper {
+                height: 310px;
+                border-radius: 12px;
+            }
+            .map-legend {
+                bottom: 8px;
+                left: 8px;
+                right: 8px;
+                padding: 6px 8px;
+                font-size: 10px;
+                gap: 6px;
+                flex-wrap: wrap;
+                border-radius: 6px;
+            }
+            .electricians-list {
+                max-height: 480px;
+                gap: 12px;
+            }
+            .electrician-card {
+                padding: 14px;
+                border-radius: 12px;
+            }
+            .card-top {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            .distance-badge {
+                align-self: flex-start;
+                font-size: 11px;
+                padding: 4px 8px;
+            }
+            .card-bottom {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+            .btn-select-electrician {
+                width: 100%;
+                min-height: 42px;
+                justify-content: center;
+                text-align: center;
+                font-size: 13px;
+                padding: 10px 14px;
+                border-radius: 8px;
+            }
+            .services-section, .steps-section {
+                padding: 40px 0;
             }
             .services-grid {
                 grid-template-columns: 1fr;
+                gap: 14px;
+            }
+            .service-card {
+                padding: 18px;
             }
             .steps-grid {
                 grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            .step-card {
+                padding: 20px 16px;
+            }
+            .emergency-section {
+                padding: 36px 0;
             }
             .emergency-content {
                 flex-direction: column;
                 text-align: center;
+                gap: 20px;
+            }
+            .emergency-text h3 {
+                font-size: 22px;
+            }
+            .emergency-text p {
+                font-size: 14px;
+            }
+            .emergency-actions {
+                flex-direction: column;
+                width: 100%;
+                gap: 10px;
+            }
+            .btn-emergency-call {
+                width: 100%;
+                justify-content: center;
+                min-height: 48px;
+                font-size: 15px;
+            }
+            .emergency-actions .btn-outline {
+                width: 100%;
+                justify-content: center;
+                min-height: 44px;
+            }
+            .footer {
+                padding: 40px 0 24px;
             }
             .footer-grid {
                 grid-template-columns: 1fr;
+                gap: 28px;
+            }
+            .footer-bottom {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+        }
+
+        /* Small Phones (iPhone SE, Galaxy A, 320px - 380px) */
+        @media (max-width: 380px) {
+            .container {
+                padding: 0 12px;
+            }
+            .hero-title {
+                font-size: 23px;
+            }
+            .brand-logo {
+                font-size: 17px;
+            }
+            .brand-icon {
+                width: 28px;
+                height: 28px;
             }
             .map-wrapper {
-                height: 350px;
+                height: 280px;
+            }
+            .btn-search {
+                font-size: 14px;
+            }
+        }
+
+        /* Mobile Sticky Quick Action Bar */
+        .mobile-bottom-bar {
+            display: none;
+        }
+
+        @media (max-width: 640px) {
+            .mobile-bottom-bar {
+                display: flex;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                z-index: 1000;
+                background: rgba(15, 23, 42, 0.96);
+                backdrop-filter: blur(12px);
+                padding: 10px 14px;
+                gap: 10px;
+                border-top: 1px solid rgba(255, 255, 255, 0.12);
+                box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.25);
+            }
+            .mobile-bar-btn {
+                flex: 1;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+                padding: 11px 12px;
+                font-size: 13px;
+                font-weight: 700;
+                border-radius: 8px;
+                text-decoration: none;
+                border: none;
+                cursor: pointer;
+                transition: transform 0.15s ease;
+            }
+            .mobile-bar-btn:active {
+                transform: scale(0.97);
+            }
+            .mobile-bar-btn.btn-detect {
+                background: #2563eb;
+                color: #ffffff;
+                box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
+            }
+            .mobile-bar-btn.btn-call {
+                background: #ef4444;
+                color: #ffffff;
+                box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
             }
         }
     </style>
@@ -1700,6 +2039,19 @@
         </div>
     </footer>
 
+    <!-- Mobile Sticky Quick Action Bar -->
+    <div class="mobile-bottom-bar">
+        <button type="button" onclick="detectBrowserLocationAndArea(true)" class="mobile-bar-btn btn-detect" title="Detect your location">
+            <span>📍 Near Me</span>
+        </button>
+        <a href="#nearby-map" class="mobile-bar-btn" style="background: #0f172a; color: #ffffff;" title="View Live Map">
+            <span>🗺️ Map</span>
+        </a>
+        <a href="tel:1800353287" class="mobile-bar-btn btn-call" title="Emergency 24/7 Helpline">
+            <span>📞 Call 24/7</span>
+        </a>
+    </div>
+
     <!-- Leaflet JS for Map -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
@@ -1770,6 +2122,7 @@
                 center: [userLocation.lat, userLocation.lng],
                 zoom: 13,
                 zoomControl: true,
+                scrollWheelZoom: false,
                 attributionControl: false
             });
 

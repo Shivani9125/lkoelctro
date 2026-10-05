@@ -9,11 +9,128 @@ body {
   background-color: #f8fafc;
   color: #1e293b;
   min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
 }
 
 #root {
   width: 100%;
+}
+
+/* Responsive Grid & Layout for Home */
+.home-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 20px;
+}
+
+.home-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.home-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.home-main-grid {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.home-map-container {
+  width: 100%;
+  height: 560px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  overflow: hidden;
+}
+
+.home-cards-column {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 580px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.area-tabs-scroll {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+  margin-bottom: 16px;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 900px) {
+  .home-main-grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .home-map-container {
+    height: 360px;
+  }
+
+  .home-cards-column {
+    max-height: 520px;
+  }
+}
+
+@media (max-width: 640px) {
+  .home-container {
+    padding: 16px 12px;
+  }
+
+  .home-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .home-header h1 {
+    font-size: 20px !important;
+  }
+
+  .home-header-actions {
+    flex-direction: column;
+    width: 100%;
+    gap: 8px !important;
+  }
+
+  .home-header-actions button,
+  .home-header-actions div {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .home-map-container {
+    height: 310px;
+    border-radius: 10px;
+  }
+
+  .home-cards-column {
+    max-height: 480px;
+  }
+
+  .area-tabs-scroll {
+    scrollbar-width: none;
+  }
+  .area-tabs-scroll::-webkit-scrollbar {
+    display: none;
+  }
 }

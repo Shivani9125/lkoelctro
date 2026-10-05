@@ -324,10 +324,10 @@ function Home() {
   };
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px 20px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+    <div className="home-container">
       
       {/* Header */}
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '14px' }}>
+      <header className="home-header">
         <div>
           <h1 style={{ fontSize: '26px', fontWeight: '800', color: '#0f172a', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ background: '#f59e0b', color: 'white', borderRadius: '8px', padding: '4px 10px', fontSize: '18px' }}>⚡</span>
@@ -338,7 +338,7 @@ function Home() {
           </p>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div className="home-header-actions">
           <button
             onClick={detectLocationFromBrowser}
             style={{
@@ -367,7 +367,7 @@ function Home() {
       </header>
 
       {/* Area Switcher Tabs */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflowX: 'auto', paddingBottom: '10px', marginBottom: '16px' }}>
+      <div className="area-tabs-scroll">
         <span style={{ fontSize: '13px', fontWeight: '700', color: '#64748b', marginRight: '4px', whiteSpace: 'nowrap' }}>
           Quick Home Area:
         </span>
@@ -398,40 +398,33 @@ function Home() {
       </div>
 
       {/* Main Grid: Map (Left) + Electricians Cards (Right) */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.25fr 1fr', gap: '24px' }}>
+      <div className="home-main-grid">
         
         {/* Map Container */}
         <div>
           <div
             ref={mapContainerRef}
-            style={{
-              width: '100%',
-              height: '560px',
-              borderRadius: '12px',
-              border: '1px solid #e2e8f0',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
-              overflow: 'hidden',
-            }}
+            className="home-map-container"
           />
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', fontSize: '12px', color: '#64748b', fontWeight: '600' }}>
-            <div style={{ display: 'flex', gap: '16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', fontSize: '12px', color: '#64748b', fontWeight: '600', flexWrap: 'wrap', gap: '8px' }}>
+            <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ fontSize: '14px' }}>🏠</span>
-                <strong style={{ color: '#2563eb' }}>You Live Here (Draggable)</strong>
+                <strong style={{ color: '#2563eb' }}>You Live Here</strong>
               </span>
               <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#f59e0b', display: 'inline-block' }}></span>
                 ⚡ Active Electrician
               </span>
             </div>
-            <span style={{ color: '#475569', fontStyle: 'italic' }}>
-              💡 Tip: Click map or drag pin to set where you live!
+            <span style={{ color: '#475569', fontStyle: 'italic', fontSize: '11px' }}>
+              💡 Click map or drag pin to set where you live!
             </span>
           </div>
         </div>
 
         {/* Electricians Cards Column */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '580px', overflowY: 'auto', paddingRight: '4px' }}>
+        <div className="home-cards-column">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h3 style={{ fontSize: '17px', fontWeight: '700', color: '#0f172a', margin: 0 }}>
               Electricians Nearest to Your Home ({electricians.length})
