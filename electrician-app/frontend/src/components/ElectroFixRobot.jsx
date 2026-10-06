@@ -230,65 +230,82 @@ Mujhe likhkar ya 🎤 Mic dabakar Hindi, Hinglish ya English me batayein. Main s
     setAgentState('IDLE');
   };
 
+  // Close Console & Cancel Speech cleanly
+  const handleClose = () => {
+    if (isListening && recognitionRef.current) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    }
+    if (window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
+    setIsOpen(false);
+  };
+
   return (
-    <div className="electrofix-robot-widget">
+    <div className={`electrofix-robot-widget ${isOpen ? 'widget-open' : ''}`}>
       {/* Floating Launcher Button */}
-      <button
-        type="button"
-        className="robot-launcher-btn"
-        onClick={() => setIsOpen(!isOpen)}
-        aria-label="Open Bijli Guru AI Assistant"
-      >
-        <div className="launcher-guru-avatar">
-          <img src="/images/sadhu_guru.jpg" alt="Bijli Guru" className="launcher-guru-img" />
-          <span className="launcher-halo-badge">🌸</span>
-        </div>
-        <div className="launcher-text-col">
-          <span className="launcher-badge">AI GUIDE • लखनऊ</span>
-          <span className="launcher-title">बिजली गुरु (Ask AI)</span>
-        </div>
-        <span className="launcher-live-pulse" title="Bijli Guru Active"></span>
-      </button>
+      {!isOpen && (
+        <button
+          type="button"
+          className="robot-launcher-btn"
+          onClick={() => setIsOpen(true)}
+          aria-label="Open Bijli Guru AI Assistant"
+        >
+          <div className="launcher-guru-avatar">
+            <img src="/images/sadhu_guru.jpg" alt="Bijli Guru" className="launcher-guru-img" />
+            <span className="launcher-halo-badge">🌸</span>
+          </div>
+          <div className="launcher-text-col">
+            <span className="launcher-badge">AI GUIDE • लखनऊ</span>
+            <span className="launcher-title">बिजली गुरु (Ask AI)</span>
+          </div>
+          <span className="launcher-live-pulse" title="Bijli Guru Active"></span>
+        </button>
+      )}
 
       {/* Main Bijli Guru Console Window */}
       {isOpen && (
-        <div className="robot-console-card">
-          {/* Header Bar */}
-          <div className="robot-console-header">
-            <div className="console-title-group">
-              <img src="/images/sadhu_guru.jpg" alt="Bijli Guru" className="console-bot-icon" />
-              <div>
-                <h4 className="console-title">Bijli Guru (बिजली गुरु)</h4>
-                <span className="console-subtitle">Friendly & Calm Electrical Guide • ElectroLKO</span>
+        <>
+          <div className="robot-mobile-backdrop" onClick={handleClose} />
+          <div className="robot-console-card">
+            {/* Header Bar */}
+            <div className="robot-console-header">
+              <div className="console-title-group">
+                <img src="/images/sadhu_guru.jpg" alt="Bijli Guru" className="console-bot-icon" />
+                <div>
+                  <h4 className="console-title">Bijli Guru (बिजली गुरु)</h4>
+                  <span className="console-subtitle">Friendly & Calm Electrical Guide • ElectroLKO</span>
+                </div>
+              </div>
+              <div className="console-actions-group">
+                <button
+                  type="button"
+                  className="console-btn-icon"
+                  onClick={() => setSpeechEnabled(!speechEnabled)}
+                  title={speechEnabled ? 'Mute Voice' : 'Enable Voice'}
+                >
+                  {speechEnabled ? '🔊' : '🔇'}
+                </button>
+                <button
+                  type="button"
+                  className="console-btn-icon"
+                  onClick={resetConversation}
+                  title="Restart Conversation"
+                >
+                  ↺
+                </button>
+                <button
+                  type="button"
+                  className="console-btn-icon"
+                  onClick={handleClose}
+                  title="Close Bijli Guru"
+                  aria-label="Close"
+                >
+                  ✕
+                </button>
               </div>
             </div>
-            <div className="console-actions-group">
-              <button
-                type="button"
-                className="console-btn-icon"
-                onClick={() => setSpeechEnabled(!speechEnabled)}
-                title={speechEnabled ? 'Mute Voice' : 'Enable Voice'}
-              >
-                {speechEnabled ? '🔊' : '🔇'}
-              </button>
-              <button
-                type="button"
-                className="console-btn-icon"
-                onClick={resetConversation}
-                title="Restart Conversation"
-              >
-                ↺
-              </button>
-              <button
-                type="button"
-                className="console-btn-icon"
-                onClick={() => setIsOpen(false)}
-                title="Close"
-              >
-                ✕
-              </button>
-            </div>
-          </div>
 
           {/* Sadhu Mahatma Avatar Chamber */}
           <div
@@ -515,7 +532,8 @@ Mujhe likhkar ya 🎤 Mic dabakar Hindi, Hinglish ya English me batayein. Main s
             </button>
           </div>
         </div>
-      )}
+      </>
+    )}
     </div>
   );
 }

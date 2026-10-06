@@ -2452,10 +2452,12 @@
         /* Bijli Guru Console Card Window */
         .robot-console-card {
             position: absolute;
-            bottom: 60px;
+            bottom: 72px;
             right: 0;
             width: 420px;
             max-width: calc(100vw - 32px);
+            height: 600px;
+            max-height: calc(100vh - 100px);
             background: #ffffff;
             border: 2px solid #fed7aa;
             border-radius: 24px;
@@ -2468,6 +2470,7 @@
             transform: translateY(20px) scale(0.96);
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             backdrop-filter: blur(16px);
+            z-index: 10001;
         }
 
         .robot-console-card.open {
@@ -2484,6 +2487,7 @@
             padding: 12px 18px;
             background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
             border-bottom: 1.5px solid #fed7aa;
+            flex-shrink: 0;
         }
 
         .console-title-group {
@@ -2552,6 +2556,7 @@
             border-bottom: 1px solid #ffedd5;
             position: relative;
             transition: background 0.3s ease;
+            flex-shrink: 0;
         }
 
         .robot-chamber.emergency-mode {
@@ -2727,6 +2732,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            flex-shrink: 0;
         }
 
         .tool-spinner {
@@ -2735,7 +2741,8 @@
 
         /* Messages Thread - Bright & Super Clean */
         .robot-messages-box {
-            height: 250px;
+            flex: 1 1 0%;
+            min-height: 0;
             overflow-y: auto;
             padding: 14px 16px;
             display: flex;
@@ -2744,6 +2751,7 @@
             background: #fafaf9;
             scrollbar-width: thin;
             scrollbar-color: #cbd5e1 transparent;
+            -webkit-overflow-scrolling: touch;
         }
 
         .agent-msg-bubble {
@@ -2864,6 +2872,8 @@
             background: #ffffff;
             border-top: 1px solid #fed7aa;
             scrollbar-width: none;
+            flex-shrink: 0;
+            -webkit-overflow-scrolling: touch;
         }
 
         .robot-quick-chips::-webkit-scrollbar {
@@ -2882,6 +2892,7 @@
             cursor: pointer;
             transition: all 0.2s ease;
             font-family: inherit;
+            flex-shrink: 0;
         }
 
         .quick-chip:hover {
@@ -2898,6 +2909,7 @@
             padding: 10px 14px 12px;
             background: #ffffff;
             border-top: 1px solid #f5f5f4;
+            flex-shrink: 0;
         }
 
         .robot-mic-btn {
@@ -2974,6 +2986,291 @@
 
         .robot-send-btn:hover {
             background: #c2410c;
+        }
+
+        /* ==========================================================================
+           Mobile & Responsive Adaptations (Smartphones & Small Tablets)
+           ========================================================================== */
+
+        /* Mobile Backdrop Overlay */
+        .robot-mobile-backdrop {
+            display: none;
+        }
+
+        /* Tablet & Medium Screen Adaptations (641px - 768px) */
+        @media (min-width: 641px) and (max-width: 768px) {
+            .robot-console-card {
+                width: 380px;
+                height: 560px;
+                max-height: calc(100vh - 80px);
+            }
+        }
+
+        /* Mobile & Small Screens (<= 640px) */
+        @media (max-width: 640px) {
+            .electrofix-robot-widget {
+                bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+                right: 14px;
+            }
+
+            /* When widget is open on mobile, lock container to full viewport */
+            .electrofix-robot-widget.widget-open {
+                position: fixed;
+                inset: 0;
+                width: 100vw;
+                height: 100dvh;
+                z-index: 100000;
+                pointer-events: none;
+            }
+
+            /* Dimmed backdrop behind mobile modal */
+            .robot-mobile-backdrop.active {
+                display: block;
+                position: fixed;
+                inset: 0;
+                background: rgba(15, 23, 42, 0.45);
+                backdrop-filter: blur(2px);
+                z-index: 100001;
+                pointer-events: auto;
+                animation: mobile-backdrop-fade 0.2s ease;
+            }
+
+            @keyframes mobile-backdrop-fade {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+
+            /* Native Mobile App style Sheet */
+            .robot-console-card {
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                bottom: 0 !important;
+                width: 100vw !important;
+                max-width: 100vw !important;
+                height: 100% !important;
+                height: 100dvh !important;
+                max-height: 100dvh !important;
+                border-radius: 0 !important;
+                border: none !important;
+                box-shadow: none !important;
+                z-index: 100002 !important;
+                transform: translateY(100%) !important;
+                transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease !important;
+            }
+
+            .robot-console-card.open {
+                transform: translateY(0) !important;
+                pointer-events: auto !important;
+                opacity: 1 !important;
+            }
+
+            /* Mobile Launcher Pill */
+            .robot-launcher-btn {
+                padding: 6px 14px 6px 6px;
+                gap: 10px;
+                box-shadow: 0 8px 24px rgba(234, 88, 12, 0.28);
+            }
+
+            .launcher-guru-avatar {
+                width: 38px;
+                height: 38px;
+            }
+
+            .launcher-badge {
+                font-size: 8.5px;
+            }
+
+            .launcher-title {
+                font-size: 12.5px;
+            }
+
+            /* Mobile Header Bar */
+            .robot-console-header {
+                padding: calc(10px + env(safe-area-inset-top, 0px)) 14px 10px;
+            }
+
+            .console-bot-icon {
+                width: 30px;
+                height: 30px;
+            }
+
+            .console-title {
+                font-size: 14px;
+            }
+
+            .console-subtitle {
+                font-size: 10.5px;
+            }
+
+            .console-btn-icon {
+                width: 34px;
+                height: 34px;
+                font-size: 13px;
+                border-radius: 10px;
+            }
+
+            /* Compact Avatar Chamber on Mobile to maximize message room */
+            .robot-chamber {
+                padding: 8px 12px 6px;
+            }
+
+            .guru-portrait-ring {
+                width: 48px;
+                height: 48px;
+                box-shadow: 0 0 14px rgba(245, 158, 11, 0.35);
+            }
+
+            .guru-avatar-wrapper {
+                margin-bottom: 4px;
+            }
+
+            .guru-aura-badge {
+                width: 18px;
+                height: 18px;
+                font-size: 10px;
+                bottom: -2px;
+                right: -2px;
+            }
+
+            .robot-state-badge {
+                padding: 2px 10px;
+                font-size: 10px;
+                margin-bottom: 4px;
+            }
+
+            .robot-audio-visualizer {
+                height: 10px;
+                width: 100px;
+                gap: 2px;
+            }
+
+            .eq-bar {
+                width: 3px;
+            }
+
+            /* Message Thread on Mobile */
+            .robot-messages-box {
+                padding: 12px 12px;
+                gap: 10px;
+            }
+
+            .agent-msg-bubble {
+                max-width: 96%;
+                gap: 8px;
+            }
+
+            .agent-msg-avatar {
+                width: 26px;
+                height: 26px;
+                font-size: 11px;
+            }
+
+            .agent-msg-text {
+                padding: 9px 12px;
+                font-size: 13px;
+                line-height: 1.45;
+            }
+
+            .user-msg-bubble {
+                max-width: 88%;
+                padding: 8px 12px;
+                font-size: 13px;
+            }
+
+            /* Pro Suggestion Card on Mobile */
+            .robot-pro-card {
+                padding: 8px 10px;
+                gap: 8px;
+            }
+
+            .robot-pro-name {
+                font-size: 12.5px;
+            }
+
+            .robot-pro-meta {
+                font-size: 10.5px;
+            }
+
+            .btn-confirm-robot-booking {
+                padding: 6px 10px;
+                font-size: 11px;
+            }
+
+            /* Quick Chips on Mobile */
+            .robot-quick-chips {
+                padding: 6px 10px;
+                gap: 5px;
+            }
+
+            .quick-chip {
+                padding: 5px 10px;
+                font-size: 11px;
+            }
+
+            /* Mobile Input Bar */
+            .robot-input-bar {
+                padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px));
+                gap: 6px;
+            }
+
+            .robot-input-bar input {
+                font-size: 16px; /* Essential: prevents automatic browser zoom on iOS Safari */
+                padding: 9px 12px;
+                border-radius: 8px;
+            }
+
+            .robot-mic-btn {
+                width: 40px;
+                height: 40px;
+            }
+
+            .robot-send-btn {
+                width: 40px;
+                height: 40px;
+            }
+        }
+
+        /* Very narrow phones (< 380px, e.g., iPhone SE) */
+        @media (max-width: 380px) {
+            .robot-launcher-btn {
+                padding: 5px 10px 5px 5px;
+                gap: 6px;
+            }
+
+            .launcher-badge {
+                display: none;
+            }
+
+            .launcher-title {
+                font-size: 11.5px;
+            }
+
+            .console-subtitle {
+                display: none;
+            }
+
+            .robot-pro-card {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .btn-confirm-robot-booking {
+                width: 100%;
+                text-align: center;
+            }
+        }
+
+        /* Landscape Mode on Phones (< 540px height) */
+        @media (max-height: 540px) and (orientation: landscape) {
+            .robot-chamber {
+                display: none !important;
+            }
+
+            .robot-console-card {
+                height: 100dvh !important;
+            }
         }
     </style>
 </head>
@@ -3652,7 +3949,7 @@
          ===================================================================== -->
     <div class="electrofix-robot-widget" id="electrofixRobotWidget">
         <!-- Floating Launcher Pill -->
-        <button type="button" class="robot-launcher-btn" id="robotLauncherBtn" onclick="toggleRobotAssistant()" aria-label="Open Bijli Guru AI Assistant">
+        <button type="button" class="robot-launcher-btn" id="robotLauncherBtn" onclick="toggleRobotAssistant(true)" aria-label="Open Bijli Guru AI Assistant">
             <div class="launcher-guru-avatar">
                 <img src="/images/sadhu_guru.jpg" alt="Bijli Guru" class="launcher-guru-img">
                 <span class="launcher-halo-badge">🌸</span>
@@ -3663,6 +3960,9 @@
             </div>
             <span class="launcher-live-pulse" title="Bijli Guru Active"></span>
         </button>
+
+        <!-- Mobile Dimmed Backdrop -->
+        <div class="robot-mobile-backdrop" id="robotMobileBackdrop" onclick="toggleRobotAssistant(false)"></div>
 
         <!-- Bijli Guru Console Card (Chat & Consultation Window) -->
         <div class="robot-console-card" id="robotConsoleCard">
@@ -3678,7 +3978,7 @@
                 <div class="console-actions-group">
                     <button type="button" class="console-btn-icon" id="robotSpeechToggleBtn" onclick="toggleSpeechOutput()" title="Toggle Voice Output (TTS)">🔊</button>
                     <button type="button" class="console-btn-icon" onclick="resetRobotChat()" title="Restart Conversation">↺</button>
-                    <button type="button" class="console-btn-icon" onclick="toggleRobotAssistant()" title="Minimize Console">✕</button>
+                    <button type="button" class="console-btn-icon" onclick="toggleRobotAssistant(false)" title="Close Bijli Guru" aria-label="Close">✕</button>
                 </div>
             </div>
 
@@ -4478,10 +4778,25 @@
         let currentRobotState = 'IDLE';
 
         // Toggle open/close of Robot Widget console
-        function toggleRobotAssistant() {
+        function toggleRobotAssistant(forcedState = null) {
             const card = document.getElementById('robotConsoleCard');
+            const widget = document.getElementById('electrofixRobotWidget');
+            const launcher = document.getElementById('robotLauncherBtn');
+            const backdrop = document.getElementById('robotMobileBackdrop');
             if (!card) return;
-            const isOpen = card.classList.toggle('open');
+
+            let isOpen;
+            if (typeof forcedState === 'boolean') {
+                isOpen = forcedState;
+                card.classList.toggle('open', isOpen);
+            } else {
+                isOpen = card.classList.toggle('open');
+            }
+
+            if (widget) widget.classList.toggle('widget-open', isOpen);
+            if (launcher) launcher.style.display = isOpen ? 'none' : 'flex';
+            if (backdrop) backdrop.classList.toggle('active', isOpen);
+
             if (isOpen) {
                 scrollRobotChatToBottom();
                 const input = document.getElementById('robotInputText');
