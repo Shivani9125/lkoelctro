@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import api from '../services/api';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import ElectroFixRobot from '../components/ElectroFixRobot';
 
 const LUCKNOW_AREAS = [
   { id: 'gomti_nagar', name: 'Gomti Nagar (East)', lat: 26.8530, lng: 80.9980 },
@@ -503,6 +504,16 @@ function Home() {
           )}
         </div>
       </div>
+
+      {/* ElectroFix AI Robot Assistant Widget */}
+      <ElectroFixRobot
+        customerLocation={{
+          area: customerLocation.areaName,
+          lat: customerLocation.latitude,
+          lng: customerLocation.longitude
+        }}
+        onSelectElectrician={setSelectedElectrician}
+      />
     </div>
   );
 }

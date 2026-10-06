@@ -197,13 +197,16 @@
 
         /* Hero Section */
         .hero {
-            padding: 64px 0 48px;
-            background: radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.08) 0%, transparent 60%);
+            padding: 72px 0 56px;
+            position: relative;
+            background: radial-gradient(circle at 45% 10%, rgba(37, 99, 235, 0.09) 0%, transparent 65%),
+                        radial-gradient(circle at 80% 40%, rgba(245, 158, 11, 0.06) 0%, transparent 55%);
+            overflow: hidden;
         }
 
         .hero-grid {
             display: grid;
-            grid-template-columns: 1.15fr 0.85fr;
+            grid-template-columns: 1.14fr 0.86fr;
             gap: 48px;
             align-items: center;
         }
@@ -212,14 +215,25 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            padding: 6px 14px;
+            padding: 7px 16px;
             background: #fffbeb;
             color: #b45309;
             border: 1px solid #fde68a;
             border-radius: var(--radius-full);
             font-size: 13px;
-            font-weight: 600;
+            font-weight: 700;
             margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.12);
+        }
+
+        .pulse-spark {
+            font-size: 14px;
+            animation: spark-pulse 1.8s infinite;
+        }
+
+        @keyframes spark-pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.7; }
         }
 
         .hero-title {
@@ -231,31 +245,94 @@
             margin-bottom: 18px;
         }
 
-        .hero-title span {
-            color: var(--accent);
+        .hero-title .gradient-accent {
+            background: linear-gradient(135deg, #2563eb 0%, #38bdf8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .hero-subtitle {
-            font-size: 18px;
+            font-size: 17px;
             color: var(--text-muted);
-            margin-bottom: 32px;
+            margin-bottom: 28px;
             max-width: 540px;
+            line-height: 1.6;
         }
 
-        /* Search Card in Hero */
+        /* Modern Elevated Search Card in Hero */
         .search-box-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            padding: 20px;
-            box-shadow: var(--shadow-lg);
+            background: #ffffff;
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            border-radius: 20px;
+            padding: 22px 24px 20px;
+            box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(241, 245, 249, 0.9);
             margin-bottom: 24px;
+            transition: box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+
+        .search-box-card:focus-within {
+            box-shadow: 0 24px 50px -12px rgba(37, 99, 235, 0.12), 0 0 0 1px rgba(37, 99, 235, 0.25);
+            border-color: rgba(191, 219, 254, 0.9);
+        }
+
+        .search-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .search-live-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #0f172a;
+            letter-spacing: 0.2px;
+        }
+
+        .status-live-beacon {
+            width: 8px;
+            height: 8px;
+            background-color: #10b981;
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .status-live-beacon::after {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 50%;
+            background-color: rgba(16, 185, 129, 0.4);
+            animation: ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+
+        @keyframes ping {
+            75%, 100% {
+                transform: scale(2.2);
+                opacity: 0;
+            }
+        }
+
+        .search-eta-pill {
+            font-size: 11px;
+            font-weight: 700;
+            color: #b45309;
+            background: #fffbeb;
+            padding: 3px 10px;
+            border-radius: 9999px;
+            border: 1px solid #fef3c7;
         }
 
         .search-form-row {
             display: grid;
-            grid-template-columns: 1fr 1fr auto;
-            gap: 12px;
+            grid-template-columns: 1.15fr 1fr auto;
+            gap: 14px;
+            align-items: flex-end;
         }
 
         .input-group {
@@ -265,11 +342,11 @@
         }
 
         .input-group label {
-            font-size: 12px;
-            font-weight: 600;
+            font-size: 11px;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--text-muted);
+            letter-spacing: 0.6px;
+            color: #64748b;
         }
 
         .input-wrapper {
@@ -277,42 +354,150 @@
             align-items: center;
             gap: 10px;
             background: #f8fafc;
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            padding: 10px 14px;
-            transition: border-color 0.2s ease;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 11px 14px;
+            transition: all 0.2s ease;
         }
 
         .input-wrapper:focus-within {
-            border-color: var(--accent);
+            border-color: #2563eb;
             background: #ffffff;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
         }
 
-        .input-wrapper svg {
-            color: var(--text-muted);
+        .input-icon {
+            color: #64748b;
             flex-shrink: 0;
             width: 18px;
             height: 18px;
+            transition: color 0.2s ease;
         }
 
-        .input-wrapper input,
+        .input-wrapper:focus-within .input-icon {
+            color: #2563eb;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-size: 14px;
+            font-weight: 600;
+            color: #0f172a;
+            font-family: inherit;
+        }
+
+        .input-wrapper input::placeholder {
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
         .input-wrapper select {
             width: 100%;
             border: none;
             outline: none;
             background: transparent;
             font-size: 14px;
-            font-weight: 500;
-            color: var(--text-dark);
+            font-weight: 600;
+            color: #0f172a;
             font-family: inherit;
+            cursor: pointer;
+        }
+
+        .btn-hero-search {
+            height: 46px;
+            padding: 0 24px;
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 6px 18px rgba(37, 99, 235, 0.35);
+            transition: all 0.25s ease;
+            white-space: nowrap;
+        }
+
+        .btn-hero-search:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 24px rgba(37, 99, 235, 0.45);
+            background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+        }
+
+        .btn-hero-search svg {
+            transition: transform 0.2s ease;
+        }
+
+        .btn-hero-search:hover svg {
+            transform: translateX(3px);
+        }
+
+        /* Quick Areas Bar Inside Search Card */
+        .hero-quick-areas {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px dashed #e2e8f0;
+            flex-wrap: wrap;
+        }
+
+        .quick-areas-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        .quick-areas-pills {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .hero-quick-pill {
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+            border-radius: 9999px;
+            padding: 4px 11px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .hero-quick-pill:hover {
+            background: #eff6ff;
+            color: #2563eb;
+            border-color: #bfdbfe;
+            transform: translateY(-1px);
+        }
+
+        .hero-quick-pill.active {
+            background: #0f172a;
+            color: #ffffff;
+            border-color: #0f172a;
         }
 
         .hero-trust-badges {
             display: flex;
             align-items: center;
-            gap: 24px;
-            padding-top: 12px;
+            gap: 20px;
+            padding-top: 8px;
+            flex-wrap: wrap;
         }
 
         .trust-item {
@@ -326,111 +511,688 @@
 
         .trust-item svg {
             color: var(--success);
-            width: 16px;
-            height: 16px;
+            width: 17px;
+            height: 17px;
         }
 
-        /* Hero Graphic Illustration */
+        /* Hero Interactive Slider Visual Showcase */
         .hero-visual {
             position: relative;
         }
 
-        .visual-card {
-            background: linear-gradient(145deg, #1e293b, #0f172a);
-            border-radius: var(--radius-lg);
-            padding: 36px 30px;
+        .hero-ambient-glow {
+            position: absolute;
+            top: -40px;
+            right: -40px;
+            width: 320px;
+            height: 320px;
+            background: radial-gradient(circle, rgba(37, 99, 235, 0.2) 0%, rgba(245, 158, 11, 0.1) 50%, transparent 70%);
+            border-radius: 50%;
+            filter: blur(50px);
+            pointer-events: none;
+            z-index: 0;
+            animation: ambient-drift 8s ease-in-out infinite alternate;
+        }
+
+        @keyframes ambient-drift {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(-20px, 20px) scale(1.1); }
+        }
+
+        .hero-slider-card {
+            background: linear-gradient(150deg, #0b1329 0%, #111e38 50%, #0f172a 100%);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 24px;
+            padding: 26px 24px 20px;
             color: #ffffff;
-            box-shadow: var(--shadow-lg), 0 20px 40px rgba(15, 23, 42, 0.25);
+            box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.35), 0 0 40px rgba(37, 99, 235, 0.15);
+            position: relative;
+            z-index: 1;
+            overflow: hidden;
+            min-height: 485px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .slider-header-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            z-index: 2;
+        }
+
+        .slider-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 5px 12px;
+            border-radius: 9999px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: #93c5fd;
+            backdrop-filter: blur(8px);
+        }
+
+        .beacon-dot {
+            width: 7px;
+            height: 7px;
+            background: #3b82f6;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #60a5fa;
+            animation: beacon-pulse 1.6s infinite;
+        }
+
+        @keyframes beacon-pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.4); opacity: 0.5; }
+        }
+
+        .slider-nav-arrows {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .slider-nav-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .slider-nav-btn:hover {
+            background: rgba(37, 99, 235, 0.6);
+            border-color: #60a5fa;
+            transform: scale(1.08);
+        }
+
+        .slider-slides-container {
+            position: relative;
+            flex: 1;
+            display: flex;
+            align-items: stretch;
+        }
+
+        .hero-slide {
+            display: none;
+            width: 100%;
+            animation: slide-fade-in 0.4s ease-out forwards;
+        }
+
+        .hero-slide.active {
+            display: block;
+        }
+
+        @keyframes slide-fade-in {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .visual-header {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -0.4px;
+            margin-bottom: 6px;
+            color: #ffffff;
+        }
+
+        .visual-sub {
+            font-size: 13px;
+            color: #94a3b8;
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        /* Slide 1: Animated Radar */
+        .radar-scope-wrapper {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 12px 10px;
+            margin-bottom: 14px;
+            display: flex;
+            justify-content: center;
             position: relative;
             overflow: hidden;
         }
 
-        .visual-card::after {
-            content: '';
-            position: absolute;
-            top: -50px;
-            right: -50px;
-            width: 200px;
-            height: 200px;
-            background: radial-gradient(circle, rgba(245, 158, 11, 0.3) 0%, transparent 70%);
-            border-radius: 50%;
+        .radar-scope {
+            width: 220px;
+            height: 135px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .visual-badge {
-            display: inline-flex;
+        .radar-ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px dashed rgba(59, 130, 246, 0.35);
+            pointer-events: none;
+        }
+
+        .radar-ring.ring-1 { width: 56px; height: 56px; border-style: solid; border-color: rgba(59, 130, 246, 0.4); }
+        .radar-ring.ring-2 { width: 115px; height: 115px; }
+        .radar-ring.ring-3 { width: 180px; height: 180px; border-color: rgba(59, 130, 246, 0.2); }
+
+        .radar-sweep-beam {
+            position: absolute;
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg at 50% 50%, rgba(37, 99, 235, 0.35) 0deg, transparent 60deg, transparent 360deg);
+            animation: radar-sweep 4s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes radar-sweep {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .radar-home-beacon {
+            position: absolute;
+            z-index: 5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .radar-home-beacon .home-icon {
+            font-size: 18px;
+            filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.6));
+        }
+
+        .pulse-wave {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 32px;
+            height: 32px;
+            margin-top: -16px;
+            margin-left: -16px;
+            border-radius: 50%;
+            background: rgba(37, 99, 235, 0.5);
+            animation: beacon-wave 2s infinite;
+            pointer-events: none;
+        }
+
+        @keyframes beacon-wave {
+            0% { transform: scale(0.5); opacity: 1; }
+            100% { transform: scale(2.4); opacity: 0; }
+        }
+
+        .home-tag {
+            font-size: 9px;
+            font-weight: 800;
+            color: #93c5fd;
+            background: rgba(15, 23, 42, 0.85);
+            padding: 1px 6px;
+            border-radius: 4px;
+            border: 1px solid rgba(59, 130, 246, 0.4);
+            white-space: nowrap;
+            margin-top: 2px;
+        }
+
+        .radar-pro-blip {
+            position: absolute;
+            z-index: 6;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .radar-pro-blip:hover {
+            transform: scale(1.2);
+        }
+
+        .radar-pro-blip.blip-1 { top: 10px; left: 34px; }
+        .radar-pro-blip.blip-2 { bottom: 14px; right: 38px; }
+        .radar-pro-blip.blip-3 { top: 18px; right: 28px; }
+
+        .blip-core {
+            font-size: 13px;
+            color: #f59e0b;
+            background: rgba(245, 158, 11, 0.2);
+            border-radius: 50%;
+            padding: 2px;
+            box-shadow: 0 0 8px rgba(245, 158, 11, 0.8);
+        }
+
+        .blip-ping {
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: rgba(245, 158, 11, 0.4);
+            animation: blip-pulse 2s infinite;
+        }
+
+        @keyframes blip-pulse {
+            0% { transform: scale(0.8); opacity: 1; }
+            100% { transform: scale(2.6); opacity: 0; }
+        }
+
+        .blip-label {
+            font-size: 9px;
+            font-weight: 700;
+            color: #cbd5e1;
+            background: rgba(15, 23, 42, 0.9);
+            padding: 1px 5px;
+            border-radius: 4px;
+            white-space: nowrap;
+            margin-top: 1px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .radar-live-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 9px 13px;
+            margin-bottom: 14px;
+            font-size: 12px;
+            color: #cbd5e1;
+        }
+
+        .radar-live-item {
+            display: flex;
             align-items: center;
             gap: 6px;
-            background: rgba(255, 255, 255, 0.12);
-            padding: 6px 12px;
-            border-radius: var(--radius-full);
-            font-size: 12px;
-            font-weight: 600;
-            margin-bottom: 20px;
         }
 
-        .visual-header {
-            font-size: 24px;
+        .dot-online {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            box-shadow: 0 0 6px #10b981;
+        }
+
+        /* Slide 2: Pro Spotlight Card */
+        .pro-spotlight-card {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            backdrop-filter: blur(8px);
+        }
+
+        .pro-spotlight-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .pro-avatar-badge {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 15px;
+            color: #ffffff;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+            flex-shrink: 0;
+        }
+
+        .pro-check-dot {
+            position: absolute;
+            bottom: -3px;
+            right: -3px;
+            width: 15px;
+            height: 15px;
+            background: #10b981;
+            border: 2px solid #0f172a;
+            border-radius: 50%;
+            font-size: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            color: #ffffff;
+        }
+
+        .pro-info-col {
+            flex: 1;
+        }
+
+        .pro-name-line {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 2px;
+        }
+
+        .pro-name-line h4 {
+            font-size: 15px;
+            font-weight: 800;
+            color: #ffffff;
+            margin: 0;
+        }
+
+        .pro-verified-tag {
+            font-size: 10px;
             font-weight: 700;
-            margin-bottom: 8px;
+            color: #10b981;
+            background: rgba(16, 185, 129, 0.15);
+            padding: 2px 7px;
+            border-radius: 9999px;
+            border: 1px solid rgba(16, 185, 129, 0.3);
         }
 
-        .visual-sub {
-            font-size: 14px;
+        .pro-rating-line {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11px;
+        }
+
+        .pro-stars { color: #f59e0b; }
+        .pro-score { font-weight: 800; color: #ffffff; }
+        .pro-count { color: #94a3b8; font-size: 10px; }
+
+        .pro-loc-line {
+            font-size: 11px;
+            color: #cbd5e1;
+            margin-top: 2px;
+        }
+
+        .pro-tags-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .pro-tag {
+            font-size: 10px;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #e2e8f0;
+            padding: 2px 7px;
+            border-radius: 6px;
+        }
+
+        .pro-status-dispatch-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .pro-dispatch-avail {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
             color: #94a3b8;
-            margin-bottom: 28px;
         }
 
+        .pulse-active-dot {
+            width: 7px;
+            height: 7px;
+            background: #10b981;
+            border-radius: 50%;
+            box-shadow: 0 0 6px #10b981;
+        }
+
+        .btn-book-spotlight {
+            background: #2563eb;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-book-spotlight:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+
+        .mini-tech-preview {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-size: 11px;
+            color: #cbd5e1;
+        }
+
+        .mini-tech-avatar {
+            width: 22px;
+            height: 22px;
+            background: #334155;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 10px;
+            color: #ffffff;
+        }
+
+        .mini-tech-status {
+            color: #10b981;
+            font-weight: 700;
+            margin-left: auto;
+        }
+
+        /* Slide 3: Guarantee Grid */
+        .guarantee-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .guarantee-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 11px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            transition: background 0.2s ease;
+        }
+
+        .guarantee-card:hover {
+            background: rgba(255, 255, 255, 0.09);
+        }
+
+        .guarantee-icon {
+            font-size: 18px;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+
+        .guarantee-text h5 {
+            font-size: 12px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 2px;
+        }
+
+        .guarantee-text p {
+            font-size: 10px;
+            color: #94a3b8;
+            line-height: 1.35;
+            margin: 0;
+        }
+
+        .guarantee-subtext {
+            font-size: 11px;
+            color: #10b981;
+            font-weight: 600;
+            text-align: center;
+            padding: 7px;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        /* Shared Metrics */
         .quick-metrics {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.12);
+            gap: 12px;
+            padding-top: 14px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .metric-box h4 {
-            font-size: 22px;
+            font-size: 19px;
             font-weight: 800;
             color: #f59e0b;
+            margin-bottom: 2px;
         }
 
         .metric-box p {
-            font-size: 12px;
+            font-size: 11px;
             color: #94a3b8;
             font-weight: 500;
         }
 
-        /* Floating notification on hero */
-        .floating-notification {
+        /* Slider Progress Bar */
+        .slider-progress-bar {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .progress-segment {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 6px 8px;
+            cursor: pointer;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .progress-segment:hover {
+            background: rgba(255, 255, 255, 0.14);
+        }
+
+        .prog-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #94a3b8;
+            position: relative;
+            z-index: 2;
+            transition: color 0.2s ease;
+        }
+
+        .progress-segment.active .prog-title {
+            color: #ffffff;
+        }
+
+        .prog-fill {
             position: absolute;
-            bottom: -20px;
-            left: -20px;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 0%;
+            background: linear-gradient(90deg, rgba(37, 99, 235, 0.6), rgba(59, 130, 246, 0.8));
+            border-radius: 7px;
+            transition: width 0.3s ease;
+            z-index: 1;
+        }
+
+        .progress-segment.active .prog-fill {
+            width: 100%;
+        }
+
+        /* Floating Live Notification Ticker */
+        .floating-notification-ticker {
+            position: absolute;
+            bottom: -22px;
+            left: -18px;
             background: #ffffff;
             border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            padding: 12px 18px;
+            border-radius: 14px;
+            padding: 10px 16px;
             display: flex;
             align-items: center;
             gap: 12px;
-            box-shadow: var(--shadow-lg);
+            box-shadow: 0 14px 28px rgba(15, 23, 42, 0.12), 0 4px 10px rgba(15, 23, 42, 0.06);
             color: var(--text-dark);
-            animation: float 4s ease-in-out infinite;
+            z-index: 10;
+            animation: ticker-float 4s ease-in-out infinite;
+            max-width: 380px;
         }
 
-        @keyframes float {
+        @keyframes ticker-float {
             0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-8px); }
+            50% { transform: translateY(-6px); }
         }
 
-        .floating-icon {
-            width: 36px;
-            height: 36px;
+        .ticker-avatar-circle {
+            width: 34px;
+            height: 34px;
             background: #dcfce7;
             color: #16a34a;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .ticker-content {
+            transition: opacity 0.25s ease, transform 0.25s ease;
+        }
+
+        .ticker-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .ticker-sub {
+            font-size: 11px;
+            color: var(--text-muted);
+            white-space: nowrap;
         }
 
         /* Section Headings */
@@ -1282,66 +2044,43 @@
                 font-size: 12px;
             }
             .search-box-card {
-                padding: 14px;
-                border-radius: 12px;
-                box-shadow: var(--shadow-md);
+                padding: 16px;
+                border-radius: 16px;
+            }
+            .search-card-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 6px;
             }
             .search-form-row {
                 grid-template-columns: 1fr;
                 gap: 12px;
             }
-            .input-wrapper {
-                padding: 8px 12px;
-            }
-            .input-wrapper input,
-            .input-wrapper select {
-                font-size: 14px;
-            }
-            .btn-detect-loc {
-                padding: 6px 10px;
-                font-size: 11px;
-            }
-            .btn-search {
+            .btn-hero-search {
                 width: 100%;
-                min-height: 48px;
+                height: 48px;
                 font-size: 15px;
-                justify-content: center;
-                border-radius: 8px;
-                margin-top: 4px;
             }
-            .hero-visual {
-                margin-top: 10px;
-            }
-            .visual-card {
-                padding: 20px 16px;
-                border-radius: 14px;
-            }
-            .visual-header {
-                font-size: 20px;
-            }
-            .visual-sub {
-                font-size: 13px;
-                margin-bottom: 18px;
-            }
-            .quick-metrics {
+            .hero-quick-areas {
+                flex-direction: column;
+                align-items: flex-start;
                 gap: 8px;
-                padding-top: 14px;
             }
-            .metric-box h4 {
-                font-size: 18px;
+            .hero-slider-card {
+                padding: 20px 16px;
+                border-radius: 18px;
+                min-height: auto;
             }
-            .metric-box p {
-                font-size: 11px;
+            .guarantee-grid {
+                grid-template-columns: 1fr;
             }
-            .floating-notification {
+            .floating-notification-ticker {
                 position: static;
                 margin-top: 14px;
-                left: auto;
-                bottom: auto;
                 width: 100%;
                 box-sizing: border-box;
                 animation: none;
-                padding: 10px 14px;
+                max-width: 100%;
             }
             .map-section {
                 padding: 36px 0;
@@ -1570,6 +2309,672 @@
                 box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
             }
         }
+
+        /* =====================================================================
+           Bijli Guru (बिजली गुरु) AI Assistant - Warm, Bright & Welcoming UI
+           ===================================================================== */
+        .btn-ai-agent-trigger {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+            color: #c2410c;
+            border: 1.5px solid #fdba74;
+            border-radius: var(--radius-full);
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(249, 115, 22, 0.15);
+            transition: all 0.25s ease;
+            font-family: inherit;
+        }
+
+        .btn-ai-agent-trigger:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+            border-color: #ea580c;
+            box-shadow: 0 4px 16px rgba(234, 88, 12, 0.3);
+            color: #ffffff;
+        }
+
+        .navbar-guru-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 1.5px solid #f59e0b;
+            object-fit: cover;
+            display: inline-block;
+        }
+
+        /* Floating Bijli Guru Launcher Pill */
+        .electrofix-robot-widget {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 9999;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        .robot-launcher-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: linear-gradient(135deg, #ffffff 0%, #fff7ed 100%);
+            color: #1e293b;
+            border: 2px solid #fdba74;
+            border-radius: 9999px;
+            padding: 8px 18px 8px 8px;
+            cursor: pointer;
+            box-shadow: 0 10px 25px -5px rgba(234, 88, 12, 0.25), 0 0 20px rgba(245, 158, 11, 0.2);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .robot-launcher-btn:hover {
+            transform: translateY(-3px) scale(1.03);
+            border-color: #ea580c;
+            box-shadow: 0 14px 30px -5px rgba(234, 88, 12, 0.35), 0 0 25px rgba(245, 158, 11, 0.3);
+        }
+
+        .launcher-guru-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 2px solid #f59e0b;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+            overflow: visible;
+        }
+
+        .launcher-guru-img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .launcher-halo-badge {
+            position: absolute;
+            top: -6px;
+            right: -4px;
+            font-size: 13px;
+            filter: drop-shadow(0 0 4px #f59e0b);
+            animation: halo-float 2s infinite ease-in-out;
+        }
+
+        @keyframes halo-float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+
+        .launcher-text-col {
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+        }
+
+        .launcher-badge {
+            font-size: 9.5px;
+            font-weight: 800;
+            color: #ea580c;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+        }
+
+        .launcher-title {
+            font-size: 13.5px;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: -0.2px;
+        }
+
+        .launcher-live-pulse {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #10b981;
+            position: relative;
+        }
+
+        .launcher-live-pulse::after {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 50%;
+            background: rgba(16, 185, 129, 0.4);
+            animation: ping 2s infinite;
+        }
+
+        /* Bijli Guru Console Card Window */
+        .robot-console-card {
+            position: absolute;
+            bottom: 60px;
+            right: 0;
+            width: 420px;
+            max-width: calc(100vw - 32px);
+            background: #ffffff;
+            border: 2px solid #fed7aa;
+            border-radius: 24px;
+            box-shadow: 0 25px 60px rgba(154, 52, 18, 0.16), 0 0 35px rgba(245, 158, 11, 0.15);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(20px) scale(0.96);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            backdrop-filter: blur(16px);
+        }
+
+        .robot-console-card.open {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0) scale(1);
+        }
+
+        /* Header Bar - Warm & Welcoming */
+        .robot-console-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 18px;
+            background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+            border-bottom: 1.5px solid #fed7aa;
+        }
+
+        .console-title-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .console-bot-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1.5px solid #f59e0b;
+            object-fit: cover;
+            box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+        }
+
+        .console-title {
+            font-size: 14.5px;
+            font-weight: 800;
+            color: #9a3412;
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .console-subtitle {
+            font-size: 11px;
+            color: #c2410c;
+            font-weight: 600;
+        }
+
+        .console-actions-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .console-btn-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: #ffffff;
+            border: 1px solid #fed7aa;
+            color: #9a3412;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .console-btn-icon:hover {
+            background: #ffedd5;
+            color: #7c2d12;
+            border-color: #f97316;
+        }
+
+        /* Sadhu Mahatma Avatar Chamber */
+        .robot-chamber {
+            padding: 16px 18px 12px;
+            background: radial-gradient(circle at 50% 25%, #fff1e6 0%, #fffbf5 60%, #ffffff 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border-bottom: 1px solid #ffedd5;
+            position: relative;
+            transition: background 0.3s ease;
+        }
+
+        .robot-chamber.emergency-mode {
+            background: radial-gradient(circle at 50% 25%, #fee2e2 0%, #fff1f2 60%, #ffffff 100%);
+            animation: emergency-alarm-flash 1.5s infinite;
+        }
+
+        .guru-avatar-wrapper {
+            position: relative;
+            margin-bottom: 10px;
+            animation: guru-float 4s ease-in-out infinite;
+        }
+
+        @keyframes guru-float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+        }
+
+        .guru-portrait-ring {
+            width: 78px;
+            height: 78px;
+            border-radius: 50%;
+            padding: 3px;
+            background: linear-gradient(135deg, #f59e0b, #ea580c, #fbbf24);
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.4), 0 4px 10px rgba(0, 0, 0, 0.08);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .robot-chamber.emergency-mode .guru-portrait-ring {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            box-shadow: 0 0 25px rgba(239, 68, 68, 0.6);
+        }
+
+        .guru-halo-aura {
+            position: absolute;
+            inset: -8px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(245, 158, 11, 0.35) 0%, transparent 70%);
+            animation: halo-radiate 3s infinite alternate;
+            pointer-events: none;
+        }
+
+        .robot-chamber.speaking-mode .guru-halo-aura {
+            animation: halo-radiate-speak 1s infinite alternate;
+            background: radial-gradient(circle, rgba(245, 158, 11, 0.6) 0%, transparent 75%);
+        }
+
+        .robot-chamber.listening-mode .guru-halo-aura {
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.5) 0%, transparent 70%);
+        }
+
+        .robot-chamber.emergency-mode .guru-halo-aura {
+            background: radial-gradient(circle, rgba(239, 68, 68, 0.5) 0%, transparent 70%);
+        }
+
+        @keyframes halo-radiate {
+            0% { transform: scale(0.95); opacity: 0.6; }
+            100% { transform: scale(1.15); opacity: 1; }
+        }
+
+        @keyframes halo-radiate-speak {
+            0% { transform: scale(1); opacity: 0.7; }
+            100% { transform: scale(1.25); opacity: 1; }
+        }
+
+        .guru-avatar-img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #ffffff;
+            border: 2px solid #ffffff;
+            display: block;
+        }
+
+        .guru-aura-badge {
+            position: absolute;
+            bottom: -4px;
+            right: -2px;
+            background: #ffffff;
+            border: 1.5px solid #f59e0b;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* State Badge */
+        .robot-state-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 14px;
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+            border-radius: 9999px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #9a3412;
+            letter-spacing: 0.3px;
+            margin-bottom: 6px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .state-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #f59e0b;
+            box-shadow: 0 0 6px #f59e0b;
+        }
+
+        /* Soundwave Equalizer visualizer */
+        .robot-audio-visualizer {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 3px;
+            height: 14px;
+            width: 140px;
+        }
+
+        .eq-bar {
+            width: 4px;
+            height: 3px;
+            background: #fdba74;
+            border-radius: 2px;
+            transition: height 0.2s ease, background-color 0.2s ease;
+        }
+
+        .robot-chamber.speaking-mode .eq-bar,
+        .robot-chamber.listening-mode .eq-bar {
+            background: #ea580c;
+            animation: visualizer-eq 0.5s ease-in-out infinite alternate;
+        }
+        .robot-chamber.listening-mode .eq-bar { background: #10b981; }
+        .robot-chamber.emergency-mode .eq-bar { background: #ef4444; }
+
+        .eq-bar:nth-child(2) { animation-delay: 0.1s; }
+        .eq-bar:nth-child(3) { animation-delay: 0.25s; }
+        .eq-bar:nth-child(4) { animation-delay: 0.15s; }
+        .eq-bar:nth-child(5) { animation-delay: 0.35s; }
+        .eq-bar:nth-child(6) { animation-delay: 0.2s; }
+        .eq-bar:nth-child(7) { animation-delay: 0.4s; }
+        .eq-bar:nth-child(8) { animation-delay: 0.18s; }
+        .eq-bar:nth-child(9) { animation-delay: 0.3s; }
+        .eq-bar:nth-child(10) { animation-delay: 0.12s; }
+        .eq-bar:nth-child(11) { animation-delay: 0.28s; }
+        .eq-bar:nth-child(12) { animation-delay: 0.22s; }
+
+        @keyframes visualizer-eq {
+            0% { height: 3px; }
+            100% { height: 14px; }
+        }
+
+        /* Tool Banner */
+        .robot-tool-banner {
+            background: #fffbeb;
+            border-top: 1px solid #fde68a;
+            border-bottom: 1px solid #fde68a;
+            padding: 7px 14px;
+            font-size: 11.5px;
+            font-weight: 700;
+            color: #b45309;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tool-spinner {
+            animation: spark-pulse 1s infinite;
+        }
+
+        /* Messages Thread - Bright & Super Clean */
+        .robot-messages-box {
+            height: 250px;
+            overflow-y: auto;
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background: #fafaf9;
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 transparent;
+        }
+
+        .agent-msg-bubble {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            max-width: 92%;
+            align-self: flex-start;
+        }
+
+        .agent-msg-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            flex-shrink: 0;
+            border: 1.5px solid #f59e0b;
+            background: #ffffff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+        .agent-msg-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .agent-msg-text {
+            background: #ffffff;
+            border: 1px solid #e7e5e4;
+            color: #1e293b;
+            padding: 10px 14px;
+            border-radius: 4px 16px 16px 16px;
+            font-size: 13px;
+            line-height: 1.5;
+            word-break: break-word;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+        }
+
+        .user-msg-bubble {
+            align-self: flex-end;
+            max-width: 85%;
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            color: #ffffff;
+            padding: 9px 14px;
+            border-radius: 16px 16px 4px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            line-height: 1.45;
+            box-shadow: 0 4px 12px rgba(234, 88, 12, 0.22);
+        }
+
+        /* Electrician Suggestion Card inside chat */
+        .robot-pro-card {
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .robot-pro-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: #9a3412;
+            margin-bottom: 2px;
+        }
+
+        .robot-pro-meta {
+            font-size: 11px;
+            color: #78716c;
+        }
+
+        .btn-confirm-robot-booking {
+            background: #ea580c;
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .btn-confirm-robot-booking:hover {
+            background: #c2410c;
+            transform: scale(1.04);
+        }
+
+        /* Booking Confirmed Card */
+        .robot-booking-success-card {
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            border-radius: 10px;
+            padding: 12px;
+            margin-top: 8px;
+            color: #065f46;
+            font-size: 12px;
+        }
+
+        /* Quick Prompt Chips */
+        .robot-quick-chips {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            overflow-x: auto;
+            padding: 8px 14px;
+            background: #ffffff;
+            border-top: 1px solid #fed7aa;
+            scrollbar-width: none;
+        }
+
+        .robot-quick-chips::-webkit-scrollbar {
+            display: none;
+        }
+
+        .quick-chip {
+            background: #fff7ed;
+            border: 1px solid #fdba74;
+            border-radius: 9999px;
+            color: #9a3412;
+            padding: 5px 11px;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .quick-chip:hover {
+            background: #ffedd5;
+            color: #7c2d12;
+            border-color: #ea580c;
+        }
+
+        /* Input Bar */
+        .robot-input-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px 12px;
+            background: #ffffff;
+            border-top: 1px solid #f5f5f4;
+        }
+
+        .robot-mic-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #fff7ed;
+            border: 1.5px solid #fdba74;
+            color: #ea580c;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            flex-shrink: 0;
+            transition: all 0.25s ease;
+        }
+
+        .robot-mic-btn:hover {
+            background: #ea580c;
+            color: #ffffff;
+            border-color: #ea580c;
+            box-shadow: 0 0 12px rgba(234, 88, 12, 0.4);
+        }
+
+        .robot-mic-btn.recording {
+            background: #ef4444;
+            color: #ffffff;
+            border-color: #ef4444;
+            box-shadow: 0 0 18px rgba(239, 68, 68, 0.6);
+        }
+
+        .robot-mic-btn.recording .mic-pulse-ring {
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            border: 2px solid #ef4444;
+            animation: sonic-pulse 1.2s infinite;
+        }
+
+        .robot-input-bar input {
+            flex: 1;
+            background: #f8fafc;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 9px 12px;
+            color: #0f172a;
+            font-size: 13px;
+            outline: none;
+            font-family: inherit;
+            transition: border-color 0.2s ease;
+        }
+
+        .robot-input-bar input:focus {
+            border-color: #f97316;
+            box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.15);
+            background: #ffffff;
+        }
+
+        .robot-send-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: #ea580c;
+            border: none;
+            color: #ffffff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: background 0.2s ease;
+        }
+
+        .robot-send-btn:hover {
+            background: #c2410c;
+        }
     </style>
 </head>
 <body>
@@ -1583,7 +2988,7 @@
                         <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"/>
                     </svg>
                 </div>
-                <span>ElectroLKO</span>
+                <span> </span>
             </a>
 
             <ul class="nav-links">
@@ -1598,6 +3003,10 @@
                     <span class="emergency-dot"></span>
                     <span>24/7 Dispatch</span>
                 </div>
+                <button type="button" onclick="toggleRobotAssistant()" class="btn-ai-agent-trigger" id="navbarAiAgentBtn">
+                    <span>🤖</span>
+                    <span>Ask ElectroFix AI</span>
+                </button>
                 <a href="#nearby-map" class="btn btn-primary">Find Electrician</a>
             </div>
         </div>
@@ -1608,72 +3017,82 @@
         <div class="container hero-grid">
             <div class="hero-content">
                 <div class="hero-tag">
-                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"/>
-                    </svg>
-                    Certified & Background-Checked Electricians
+                    <span class="pulse-spark">⚡</span>
+                    <span>Certified & Background-Checked Electricians in Lucknow</span>
                 </div>
 
                 <h1 class="hero-title">
-                    Find a trusted <span>electrician</span> near you
+                    Find a trusted <span class="gradient-accent">electrician</span> near you
                 </h1>
 
                 <p class="hero-subtitle">
-                    Get immediate help for short circuits, fan repairs, socket replacements, and full-home wiring with verified local pros.
+                    Immediate doorstep assistance for short circuits, fan repairs, switchboards, and full-home wiring with verified Lucknow pros.
                 </p>
 
-                <!-- Location & Service Search Box -->
                 <div class="search-box-card">
+                    <div class="search-card-header">
+                        <div class="search-live-status">
+                            <span class="status-live-beacon"></span>
+                            <span>Live Proximity Dispatch Active</span>
+                        </div>
+                        <span class="search-eta-pill">⚡ Avg. Arrival: 15-20 Mins</span>
+                    </div>
+
                     <form id="heroSearchForm" onsubmit="event.preventDefault(); handleHeroSearch();">
                         <div class="search-form-row">
                             <div class="input-group">
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                                    <label for="locationInput" style="margin: 0;">Where You Live (Your Home Area)</label>
-                                    <button type="button" onclick="detectBrowserLocationAndArea(true)" style="background: #eff6ff; border: 1px solid #bfdbfe; color: #2563eb; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 6px;" title="Detect your location">
-                                        <span>📍 Detect My Location</span>
-                                    </button>
-                                </div>
-                                <div class="input-wrapper" style="position: relative;">
-                                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <label for="locationInput">Your Area in Lucknow</label>
+                                <div class="input-wrapper">
+                                    <svg class="input-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
                                     </svg>
-                                    <input type="text" id="locationInput" placeholder="Enter your area in Lucknow (e.g. Gomti Nagar, Aliganj)..." value="Gomti Nagar, Lucknow">
-                                    <button type="button" onclick="searchLocationFromInput()" class="btn-detect-loc" title="Set your home location and find nearest electricians">
-                                        <span>Set Home 🏠</span>
-                                    </button>
+                                    <input type="text" id="locationInput" placeholder="Enter locality or area (e.g. Gomti Nagar, Aliganj)..." value="Gomti Nagar, Lucknow">
                                 </div>
                             </div>
 
                             <div class="input-group">
                                 <label for="serviceSelect">Needed Service</label>
                                 <div class="input-wrapper">
-                                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <svg class="input-icong" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                                     </svg>
                                     <select id="serviceSelect">
-                                        <option value="all">All Electrical Services</option>
-                                        <option value="fan">Fan Repair & Installation</option>
-                                        <option value="socket">Switch & Socket Fix</option>
-                                        <option value="lighting">Light Installation</option>
-                                        <option value="wiring">Full House Wiring</option>
-                                        <option value="appliance">Appliance Hookup</option>
-                                        <option value="emergency">Emergency Short Circuit</option>
+                                        <option value="all">⚡ All Electrical Services</option>
+                                        <option value="fan">🌀 Fan Repair & Installation</option>
+                                        <option value="socket">🔌 Switch & Socket Fix</option>
+                                        <option value="lighting">💡 Light Installation</option>
+                                        <option value="wiring">🏠 Full House Wiring</option>
+                                        <option value="appliance">⚙️ Appliance Hookup</option>
+                                        <option value="emergency">🚨 Emergency Short Circuit</option>
                                     </select>
                                 </div>
                             </div>
 
-                            <div class="input-group" style="justify-content: flex-end;">
+                            <div class="input-group">
                                 <label style="visibility: hidden;">Search</label>
-                                <button type="submit" class="btn btn-primary" style="height: 44px;">
-                                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                <button type="submit" class="btn-hero-search">
+                                    <span>Find Electrician</span>
+                                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
                                     </svg>
-                                    Find Electrician
                                 </button>
                             </div>
                         </div>
                     </form>
+
+                    <!-- Popular Area Quick Select Pills -->
+                    <div class="hero-quick-areas">
+                        <span class="quick-areas-label">Popular Localities:</span>
+                        <div class="quick-areas-pills">
+                            <button type="button" class="hero-quick-pill active" id="quick-pill-gomti_nagar" onclick="selectHeroQuickArea('Gomti Nagar', 'gomti_nagar')">Gomti Nagar</button>
+                            <button type="button" class="hero-quick-pill" id="quick-pill-indira_nagar" onclick="selectHeroQuickArea('Indira Nagar', 'indira_nagar')">Indira Nagar</button>
+                            <button type="button" class="hero-quick-pill" id="quick-pill-hazratganj" onclick="selectHeroQuickArea('Hazratganj', 'hazratganj')">Hazratganj</button>
+                            <button type="button" class="hero-quick-pill" id="quick-pill-aliganj" onclick="selectHeroQuickArea('Aliganj', 'aliganj')">Aliganj</button>
+                            <button type="button" class="hero-quick-pill" id="quick-pill-alambagh" onclick="selectHeroQuickArea('Alambagh', 'alambagh')">Alambagh</button>
+                            <button type="button" class="hero-quick-pill" id="quick-pill-chowk" onclick="selectHeroQuickArea('Chowk', 'chowk')">Chowk</button>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="hero-trust-badges">
@@ -1698,49 +3117,225 @@
                 </div>
             </div>
 
-            <!-- Visual Card Graphic -->
+            <!-- Hero Interactive Slider Showcase (Right Column) -->
             <div class="hero-visual">
-                <div class="visual-card">
-                    <div class="visual-badge">
-                        <span>⚡ 24/7 Rapid Response</span>
-                    </div>
-                    <h3 class="visual-header">Live Technician Dispatch</h3>
-                    <p class="visual-sub">Real-time GPS dispatch coordinates the nearest certified electrician directly to your doorstep.</p>
+                <div class="hero-ambient-glow"></div>
 
-                    <div style="background: rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 16px; margin-bottom: 20px;">
-                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                            <span style="font-size: 13px; font-weight: 600; color: #cbd5e1;">Available In Your Area</span>
-                            <span style="font-size: 12px; color: #10b981; font-weight: 700;">● 4 Pros Online</span>
+                <div class="hero-slider-card" id="heroSliderCard">
+                    <!-- Slider Top Header -->
+                    <div class="slider-header-bar">
+                        <div class="slider-status-badge">
+                            <span class="beacon-dot"></span>
+                            <span id="sliderCategoryBadge">⚡ LIVE RADAR DISPATCH</span>
                         </div>
-                        <div style="font-size: 12px; color: #94a3b8;">Average arrival time: <strong style="color: #ffffff;">18 minutes</strong></div>
+                        <div class="slider-nav-arrows">
+                            <button type="button" class="slider-nav-btn prev" onclick="prevHeroSlide()" aria-label="Previous Slide">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                            </button>
+                            <button type="button" class="slider-nav-btn next" onclick="nextHeroSlide()" aria-label="Next Slide">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                            </button>
+                        </div>
                     </div>
 
-                    <div class="quick-metrics">
-                        <div class="metric-box">
-                            <h4>4.9 ★</h4>
-                            <p>Average Rating</p>
+                    <!-- Slide Track -->
+                    <div class="slider-slides-container">
+                        <!-- Slide 0: Live Radar Screen -->
+                        <div class="hero-slide active" id="heroSlide0">
+                            <div class="slide-inner">
+                                <h3 class="visual-header">Live GPS Dispatch</h3>
+                                <p class="visual-sub">Intelligent coordinates match the nearest certified technician directly to your doorstep in Lucknow.</p>
+
+                                <!-- Interactive Animated Radar -->
+                                <div class="radar-scope-wrapper">
+                                    <div class="radar-scope">
+                                        <div class="radar-sweep-beam"></div>
+                                        <div class="radar-ring ring-1"></div>
+                                        <div class="radar-ring ring-2"></div>
+                                        <div class="radar-ring ring-3"></div>
+                                        
+                                        <!-- Central You / Home Beacon -->
+                                        <div class="radar-home-beacon">
+                                            <span class="pulse-wave"></span>
+                                            <span class="home-icon">🏠</span>
+                                            <div class="home-tag">Your Home</div>
+                                        </div>
+
+                                        <!-- Blip 1 -->
+                                        <div class="radar-pro-blip blip-1" title="Rajesh S. • 0.8 km">
+                                            <span class="blip-ping"></span>
+                                            <span class="blip-core">⚡</span>
+                                            <div class="blip-label">Rajesh (0.8km)</div>
+                                        </div>
+
+                                        <!-- Blip 2 -->
+                                        <div class="radar-pro-blip blip-2" title="Mohd Imran • 1.4 km">
+                                            <span class="blip-ping"></span>
+                                            <span class="blip-core">⚡</span>
+                                            <div class="blip-label">Imran (1.4km)</div>
+                                        </div>
+
+                                        <!-- Blip 3 -->
+                                        <div class="radar-pro-blip blip-3" title="Sunil K. • 1.9 km">
+                                            <span class="blip-ping"></span>
+                                            <span class="blip-core">⚡</span>
+                                            <div class="blip-label">Sunil (1.9km)</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="radar-live-bar">
+                                    <div class="radar-live-item">
+                                        <span class="dot-online"></span>
+                                        <span><strong>4 Pros Online</strong> in Area</span>
+                                    </div>
+                                    <div class="radar-live-item">
+                                        <span style="color: #f59e0b;">⏱</span>
+                                        <span>Average Arrival: <strong style="color: #ffffff;">14 Mins</strong></span>
+                                    </div>
+                                </div>
+
+                                <div class="quick-metrics">
+                                    <div class="metric-box">
+                                        <h4>4.9 ★</h4>
+                                        <p>Average Rating</p>
+                                    </div>
+                                    <div class="metric-box">
+                                        <h4>15k+</h4>
+                                        <p>Jobs Done</p>
+                                    </div>
+                                    <div class="metric-box">
+                                        <h4>100%</h4>
+                                        <p>Safety Assured</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="metric-box">
-                            <h4>15k+</h4>
-                            <p>Jobs Done</p>
+
+                        <!-- Slide 1: Verified Pros Spotlight -->
+                        <div class="hero-slide" id="heroSlide1">
+                            <div class="slide-inner">
+                                <h3 class="visual-header">Verified Master Electricians</h3>
+                                <p class="visual-sub">Police-checked, licensed pros background-vetted for quality and safety.</p>
+
+                                <div class="pro-spotlight-card">
+                                    <div class="pro-spotlight-header">
+                                        <div class="pro-avatar-badge">
+                                            <span>RS</span>
+                                            <div class="pro-check-dot">✓</div>
+                                        </div>
+                                        <div class="pro-info-col">
+                                            <div class="pro-name-line">
+                                                <h4>Rajesh Sharma</h4>
+                                                <span class="pro-verified-tag">Master Certified</span>
+                                            </div>
+                                            <div class="pro-rating-line">
+                                                <span class="pro-stars">★★★★★</span>
+                                                <span class="pro-score">4.96</span>
+                                                <span class="pro-count">(320+ jobs in Lucknow)</span>
+                                            </div>
+                                            <div class="pro-loc-line">📍 Gomti Nagar & Hazratganj • 8+ Yrs Exp</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="pro-tags-row">
+                                        <span class="pro-tag">⚡ Short Circuits</span>
+                                        <span class="pro-tag">🔧 3-Phase Panels</span>
+                                        <span class="pro-tag">💡 Inverter Setup</span>
+                                    </div>
+
+                                    <div class="pro-status-dispatch-row">
+                                        <div class="pro-dispatch-avail">
+                                            <span class="pulse-active-dot"></span>
+                                            <span>Ready for dispatch • ~12m away</span>
+                                        </div>
+                                        <button type="button" class="btn-book-spotlight" onclick="selectElectricianFromHero('Rajesh')">
+                                            View & Book →
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="mini-tech-preview">
+                                    <div class="mini-tech-avatar">IA</div>
+                                    <div class="mini-tech-details">
+                                        <strong>Mohd. Imran</strong> • 4.92 ★ (210+ jobs) • Aliganj & Indira Nagar
+                                    </div>
+                                    <span class="mini-tech-status">● Online</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="metric-box">
-                            <h4>100%</h4>
-                            <p>Safety Assured</p>
+
+                        <!-- Slide 2: Guarantee & Assurance -->
+                        <div class="hero-slide" id="heroSlide2">
+                            <div class="slide-inner">
+                                <h3 class="visual-header">100% Quality & Safety Guarantee</h3>
+                                <p class="visual-sub">Total peace of mind with insured work, certified tools, and transparent pricing.</p>
+
+                                <div class="guarantee-grid">
+                                    <div class="guarantee-card">
+                                        <div class="guarantee-icon">🛡</div>
+                                        <div class="guarantee-text">
+                                            <h5>₹10,000 Protection</h5>
+                                            <p>Insured property damage cover on all jobs.</p>
+                                        </div>
+                                    </div>
+                                    <div class="guarantee-card">
+                                        <div class="guarantee-icon">⚡</div>
+                                        <div class="guarantee-text">
+                                            <h5>30-Day Free Rework</h5>
+                                            <p>Free resolution if the problem recurs in 30 days.</p>
+                                        </div>
+                                    </div>
+                                    <div class="guarantee-card">
+                                        <div class="guarantee-icon">🏷</div>
+                                        <div class="guarantee-text">
+                                            <h5>Fixed Upfront Pricing</h5>
+                                            <p>Pre-approved rates. No unexpected fees.</p>
+                                        </div>
+                                    </div>
+                                    <div class="guarantee-card">
+                                        <div class="guarantee-icon">⏱</div>
+                                        <div class="guarantee-text">
+                                            <h5>30-Min Fast Dispatch</h5>
+                                            <p>Nearest electrician routed immediately.</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="guarantee-subtext">
+                                    <span>✓ Verified identity & background check for every electrician</span>
+                                </div>
+                            </div>
                         </div>
+                    </div>
+
+                    <!-- Slide Progress Indicators (Segments) -->
+                    <div class="slider-progress-bar">
+                        <button type="button" class="progress-segment active" id="progSeg0" onclick="goToHeroSlide(0)">
+                            <span class="prog-fill"></span>
+                            <span class="prog-title">Live Radar</span>
+                        </button>
+                        <button type="button" class="progress-segment" id="progSeg1" onclick="goToHeroSlide(1)">
+                            <span class="prog-fill"></span>
+                            <span class="prog-title">Top Pros</span>
+                        </button>
+                        <button type="button" class="progress-segment" id="progSeg2" onclick="goToHeroSlide(2)">
+                            <span class="prog-fill"></span>
+                            <span class="prog-title">Guarantee</span>
+                        </button>
                     </div>
                 </div>
 
-                <!-- Floating Live Badge -->
-                <div class="floating-notification">
-                    <div class="floating-icon">
-                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <!-- Floating Live Notification Ticker (Dynamic Real-Time Rotation) -->
+                <div class="floating-notification-ticker" id="heroLiveTicker">
+                    <div class="ticker-avatar-circle">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                         </svg>
                     </div>
-                    <div>
-                        <div style="font-size: 13px; font-weight: 700;">Rajesh S. Completed Job</div>
-                        <div style="font-size: 11px; color: var(--text-muted);">Switchboard Repair • 8 mins ago</div>
+                    <div class="ticker-content" id="heroTickerContent">
+                        <div class="ticker-title" id="tickerTitle">Rajesh S. Completed Job</div>
+                        <div class="ticker-sub" id="tickerSubtitle">Switchboard Repair in Gomti Nagar • 4 mins ago</div>
                     </div>
                 </div>
             </div>
@@ -2050,6 +3645,125 @@
         <a href="tel:1800353287" class="mobile-bar-btn btn-call" title="Emergency 24/7 Helpline">
             <span>📞 Call 24/7</span>
         </a>
+    </div>
+
+    <!-- =====================================================================
+         Bijli Guru (बिजली गुरु) AI Assistant Widget (Friendly Mahatma Guide)
+         ===================================================================== -->
+    <div class="electrofix-robot-widget" id="electrofixRobotWidget">
+        <!-- Floating Launcher Pill -->
+        <button type="button" class="robot-launcher-btn" id="robotLauncherBtn" onclick="toggleRobotAssistant()" aria-label="Open Bijli Guru AI Assistant">
+            <div class="launcher-guru-avatar">
+                <img src="/images/sadhu_guru.jpg" alt="Bijli Guru" class="launcher-guru-img">
+                <span class="launcher-halo-badge">🌸</span>
+            </div>
+            <div class="launcher-text-col">
+                <span class="launcher-badge">AI GUIDE • लखनऊ</span>
+                <span class="launcher-title">बिजली गुरु (Ask AI)</span>
+            </div>
+            <span class="launcher-live-pulse" title="Bijli Guru Active"></span>
+        </button>
+
+        <!-- Bijli Guru Console Card (Chat & Consultation Window) -->
+        <div class="robot-console-card" id="robotConsoleCard">
+            <!-- Header Bar -->
+            <div class="robot-console-header">
+                <div class="console-title-group">
+                    <img src="/images/sadhu_guru.jpg" alt="Bijli Guru" class="console-bot-icon">
+                    <div>
+                        <h4 class="console-title">Bijli Guru (बिजली गुरु)</h4>
+                        <span class="console-subtitle" id="robotHeaderSub">Friendly & Calm Electrical Guide • ElectroLKO</span>
+                    </div>
+                </div>
+                <div class="console-actions-group">
+                    <button type="button" class="console-btn-icon" id="robotSpeechToggleBtn" onclick="toggleSpeechOutput()" title="Toggle Voice Output (TTS)">🔊</button>
+                    <button type="button" class="console-btn-icon" onclick="resetRobotChat()" title="Restart Conversation">↺</button>
+                    <button type="button" class="console-btn-icon" onclick="toggleRobotAssistant()" title="Minimize Console">✕</button>
+                </div>
+            </div>
+
+            <!-- Sadhu Mahatma Avatar Chamber (Animated Avatar & Aura Glow) -->
+            <div class="robot-chamber" id="robotChamber">
+                <div class="guru-avatar-wrapper">
+                    <div class="guru-portrait-ring" id="robotHead">
+                        <div class="guru-halo-aura"></div>
+                        <img src="/images/sadhu_guru.jpg" alt="Bijli Guru" class="guru-avatar-img">
+                        <span class="guru-aura-badge">🙏</span>
+                    </div>
+                </div>
+
+                <!-- Live State Badge -->
+                <div class="robot-state-badge" id="robotStateBadge">
+                    <span class="state-dot" id="robotStateDot"></span>
+                    <span id="robotStateText">🧘 TAIYAR • SAHAYTA READY</span>
+                </div>
+
+                <!-- Equalizer Visualizer -->
+                <div class="robot-audio-visualizer" id="robotVisualizer">
+                    <span class="eq-bar"></span>
+                    <span class="eq-bar"></span>
+                    <span class="eq-bar"></span>
+                    <span class="eq-bar"></span>
+                    <span class="eq-bar"></span>
+                    <span class="eq-bar"></span>
+                    <span class="eq-bar"></span>
+                    <span class="eq-bar"></span>
+                    <span class="eq-bar"></span>
+                    <span class="eq-bar"></span>
+                    <span class="eq-bar"></span>
+                    <span class="eq-bar"></span>
+                </div>
+            </div>
+
+            <!-- Tool Banner (appears dynamically when executing tools) -->
+            <div class="robot-tool-banner" id="robotToolBanner" style="display: none;">
+                <span class="tool-spinner">⚡</span>
+                <span id="robotToolBannerText">Finding nearby electricians in Lucknow...</span>
+            </div>
+
+            <!-- Chat Messages Thread -->
+            <div class="robot-messages-box" id="robotChatMessages">
+                <!-- Initial Welcome Message from Bijli Guru -->
+                <div class="agent-msg-bubble">
+                    <div class="agent-msg-avatar">
+                        <img src="/images/sadhu_guru.jpg" alt="Bijli Guru">
+                    </div>
+                    <div class="agent-msg-text">
+                        🌸 <strong>Pranam! Main hoon Bijli Guru (बिजली गुरु)</strong> — ElectroLKO ka aapka shant aur anubhavi electrical guide.
+                        <br><br>
+                        Aapke ghar me koi fan aawaz kar raha hai, switchboard se spark aa rahi hai, ya verified electrician chahiye?
+                        <br><br>
+                        Mujhe likhkar ya <strong>🎤 Mic</strong> dabakar <em>Hindi, Hinglish ya English</em> me batayein. Main samasya ki jaanch aur saste sahi mistri provide karta hoon!
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Prompt Chips -->
+            <div class="robot-quick-chips" id="robotQuickChips">
+                <button type="button" class="quick-chip" onclick="handleQuickChipClick('Fan kharab hai, humming sound aa rahi hai')">🌀 Fan Humming</button>
+                <button type="button" class="quick-chip" onclick="handleQuickChipClick('Switchboard se spark aa raha hai, burning smell hai')">⚠️ Spark & Smoke</button>
+                <button type="button" class="quick-chip" onclick="handleQuickChipClick('Gomti Nagar me verified electrician bhej do')">⚡ Electrician Near Me</button>
+                <button type="button" class="quick-chip" onclick="handleQuickChipClick('MCB baar baar trip ho rahi hai')">🔌 MCB Tripping</button>
+                <button type="button" class="quick-chip" onclick="handleQuickChipClick('New light fitting aur chandelier lagwana hai')">💡 Light Fitting</button>
+            </div>
+
+            <!-- Input Bar -->
+            <div class="robot-input-bar">
+                <button type="button" class="robot-mic-btn" id="robotMicBtn" onclick="toggleRobotVoiceInput()" title="Voice Input (Hindi/English)">
+                    <span class="mic-pulse-ring"></span>
+                    <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                        <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                    </svg>
+                </button>
+                <input type="text" id="robotInputText" placeholder="Bijli Guru se poochhein (Hindi/English)..." onkeydown="handleRobotInputKey(event)" autocomplete="off">
+                <button type="button" class="robot-send-btn" id="robotSendBtn" onclick="handleRobotSendClick()" title="Send">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- Leaflet JS for Map -->
@@ -2630,12 +4344,573 @@
             }
         }
 
+        // 16. Hero Slider Controller
+        let currentHeroSlide = 0;
+        const totalHeroSlides = 3;
+        let heroSliderInterval = null;
+        const heroSlideCategories = [
+            "⚡ LIVE RADAR DISPATCH",
+            "🛡 TOP PROS SPOTLIGHT",
+            "✨ 100% SAFETY GUARANTEE"
+        ];
+
+        function goToHeroSlide(index) {
+            currentHeroSlide = (index + totalHeroSlides) % totalHeroSlides;
+            for (let i = 0; i < totalHeroSlides; i++) {
+                const slide = document.getElementById(`heroSlide${i}`);
+                const seg = document.getElementById(`progSeg${i}`);
+                if (slide) slide.classList.toggle('active', i === currentHeroSlide);
+                if (seg) seg.classList.toggle('active', i === currentHeroSlide);
+            }
+            const catBadge = document.getElementById('sliderCategoryBadge');
+            if (catBadge) {
+                catBadge.innerText = heroSlideCategories[currentHeroSlide];
+            }
+        }
+
+        function nextHeroSlide() {
+            goToHeroSlide(currentHeroSlide + 1);
+        }
+
+        function prevHeroSlide() {
+            goToHeroSlide(currentHeroSlide - 1);
+        }
+
+        function startHeroSliderAutoplay() {
+            stopHeroSliderAutoplay();
+            heroSliderInterval = setInterval(() => {
+                nextHeroSlide();
+            }, 5500);
+        }
+
+        function stopHeroSliderAutoplay() {
+            if (heroSliderInterval) {
+                clearInterval(heroSliderInterval);
+                heroSliderInterval = null;
+            }
+        }
+
+        // 17. Floating Live Activity Ticker
+        const tickerActivities = [
+            { title: "Rajesh S. Completed Job", sub: "Switchboard Repair in Gomti Nagar • 4 mins ago" },
+            { title: "Amit K. Dispatched Now", sub: "Emergency MCB Tripping in Indira Nagar • 8 mins ago" },
+            { title: "Sunil V. Arrived on Site", sub: "Fan Installation in Aliganj • 14 mins ago" },
+            { title: "Mohd Imran Completed Job", sub: "Full Home Wiring in Hazratganj • 21 mins ago" },
+            { title: "Dinesh K. Dispatched Now", sub: "Power Socket Replacement in Alambagh • 29 mins ago" }
+        ];
+        let currentTickerIndex = 0;
+
+        function cycleLiveTicker() {
+            const content = document.getElementById('heroTickerContent');
+            const titleEl = document.getElementById('tickerTitle');
+            const subEl = document.getElementById('tickerSubtitle');
+            if (!content || !titleEl || !subEl) return;
+
+            content.style.opacity = '0';
+            content.style.transform = 'translateY(6px)';
+
+            setTimeout(() => {
+                currentTickerIndex = (currentTickerIndex + 1) % tickerActivities.length;
+                const item = tickerActivities[currentTickerIndex];
+                titleEl.innerText = item.title;
+                subEl.innerText = item.sub;
+                content.style.opacity = '1';
+                content.style.transform = 'translateY(0)';
+            }, 250);
+        }
+
+        // 18. Quick Select Area from Hero Pills
+        function selectHeroQuickArea(areaName, areaKey) {
+            const input = document.getElementById('locationInput');
+            if (input) input.value = areaName + ', Lucknow';
+
+            document.querySelectorAll('.hero-quick-pill').forEach(p => p.classList.remove('active'));
+            const clicked = document.getElementById(`quick-pill-${areaKey}`);
+            if (clicked) clicked.classList.add('active');
+
+            if (typeof switchArea === 'function' && areaKey) {
+                switchArea(areaKey);
+                const mapSec = document.getElementById('nearby-map');
+                if (mapSec) mapSec.scrollIntoView({ behavior: 'smooth' });
+            } else {
+                handleHeroSearch();
+            }
+        }
+
+        // 19. Spotlight Book CTA
+        function selectElectricianFromHero(nameQuery) {
+            const mapSec = document.getElementById('nearby-map');
+            if (mapSec) mapSec.scrollIntoView({ behavior: 'smooth' });
+
+            if (typeof electriciansData !== 'undefined' && electriciansData && electriciansData.length > 0) {
+                const found = electriciansData.find(e => e.name && e.name.toLowerCase().includes(nameQuery.toLowerCase()));
+                if (found) {
+                    selectElectrician(found.id, true);
+                    return;
+                }
+            }
+            handleHeroSearch();
+        }
+
         // Initialize on DOM Ready
         document.addEventListener('DOMContentLoaded', () => {
             initMap();
             // Fetch directly from browser coordinates on page load
             detectBrowserLocationAndArea(false);
+
+            // Initialize Hero Slider & Live Ticker
+            startHeroSliderAutoplay();
+            const sliderCard = document.getElementById('heroSliderCard');
+            if (sliderCard) {
+                sliderCard.addEventListener('mouseenter', stopHeroSliderAutoplay);
+                sliderCard.addEventListener('mouseleave', startHeroSliderAutoplay);
+            }
+            setInterval(cycleLiveTicker, 4000);
         });
+
+        /* =====================================================================
+           ElectroFix AI Agent - Client Controller & Voice Engine
+           ===================================================================== */
+        let robotConversationHistory = [];
+        let robotSpeechEnabled = true;
+        let robotRecognition = null;
+        let isRobotListening = false;
+        let currentRobotState = 'IDLE';
+
+        // Toggle open/close of Robot Widget console
+        function toggleRobotAssistant() {
+            const card = document.getElementById('robotConsoleCard');
+            if (!card) return;
+            const isOpen = card.classList.toggle('open');
+            if (isOpen) {
+                scrollRobotChatToBottom();
+                const input = document.getElementById('robotInputText');
+                if (input) setTimeout(() => input.focus(), 250);
+            } else {
+                if (isRobotListening && robotRecognition) {
+                    robotRecognition.stop();
+                }
+                if (window.speechSynthesis) {
+                    window.speechSynthesis.cancel();
+                }
+            }
+        }
+
+        // Update Robot State & Visual Animations
+        function updateRobotState(state, toolName = null) {
+            currentRobotState = state;
+            const chamber = document.getElementById('robotChamber');
+            const stateDot = document.getElementById('robotStateDot');
+            const stateText = document.getElementById('robotStateText');
+            const toolBanner = document.getElementById('robotToolBanner');
+            const toolBannerText = document.getElementById('robotToolBannerText');
+
+            if (!chamber || !stateDot || !stateText) return;
+
+            // Reset mode classes
+            chamber.classList.remove('speaking-mode', 'listening-mode', 'emergency-mode');
+            if (toolBanner) toolBanner.style.display = 'none';
+
+            switch (state) {
+                case 'LISTENING':
+                    chamber.classList.add('listening-mode');
+                    stateDot.style.background = '#10b981';
+                    stateDot.style.boxShadow = '0 0 8px #10b981';
+                    stateText.innerText = '🎤 SUN RAHE HAIN (LISTENING)...';
+                    break;
+
+                case 'THINKING':
+                    stateDot.style.background = '#a855f7';
+                    stateDot.style.boxShadow = '0 0 8px #a855f7';
+                    stateText.innerText = '💡 SOCH RAHE HAIN (THINKING)...';
+                    break;
+
+                case 'USING TOOL':
+                    stateDot.style.background = '#f59e0b';
+                    stateDot.style.boxShadow = '0 0 8px #f59e0b';
+                    stateText.innerText = `⚡ ${toolName ? toolName.toUpperCase() : 'JAANCH'}...`;
+                    if (toolBanner && toolBannerText) {
+                        toolBanner.style.display = 'flex';
+                        toolBannerText.innerText = `Executing: ${toolName || 'Application Tool'} in Lucknow DB...`;
+                    }
+                    break;
+
+                case 'SPEAKING':
+                    chamber.classList.add('speaking-mode');
+                    stateDot.style.background = '#ea580c';
+                    stateDot.style.boxShadow = '0 0 8px #ea580c';
+                    stateText.innerText = '🗣️ SAMJHA RAHE HAIN...';
+                    break;
+
+                case 'EMERGENCY':
+                    chamber.classList.add('emergency-mode');
+                    stateDot.style.background = '#ef4444';
+                    stateDot.style.boxShadow = '0 0 10px #ef4444';
+                    stateText.innerText = '⚠️ SAVDHANI • EMERGENCY ALERT';
+                    break;
+
+                case 'IDLE':
+                default:
+                    stateDot.style.background = '#f59e0b';
+                    stateDot.style.boxShadow = '0 0 6px #f59e0b';
+                    stateText.innerText = '🧘 BIJLI GURU • READY';
+                    break;
+            }
+        }
+
+        // Toggle Voice Recording (Speech to Text)
+        function toggleRobotVoiceInput() {
+            const micBtn = document.getElementById('robotMicBtn');
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+            if (!SpeechRecognition) {
+                alert('Speech Recognition is not supported by this browser. Please use Chrome, Edge, or type your message.');
+                return;
+            }
+
+            if (isRobotListening) {
+                if (robotRecognition) robotRecognition.stop();
+                return;
+            }
+
+            try {
+                robotRecognition = new SpeechRecognition();
+                robotRecognition.lang = 'hi-IN'; // Recognizes Hindi and Indian English seamlessly
+                robotRecognition.interimResults = false;
+                robotRecognition.continuous = false;
+
+                robotRecognition.onstart = () => {
+                    isRobotListening = true;
+                    if (micBtn) micBtn.classList.add('recording');
+                    updateRobotState('LISTENING');
+                };
+
+                robotRecognition.onresult = (event) => {
+                    const transcript = event.results[0][0].transcript;
+                    const input = document.getElementById('robotInputText');
+                    if (input) input.value = transcript;
+                    // Auto send spoken query to agent
+                    setTimeout(() => {
+                        handleRobotSendClick();
+                    }, 400);
+                };
+
+                robotRecognition.onerror = (err) => {
+                    console.warn('Speech recognition error:', err);
+                    isRobotListening = false;
+                    if (micBtn) micBtn.classList.remove('recording');
+                    updateRobotState('IDLE');
+                };
+
+                robotRecognition.onend = () => {
+                    isRobotListening = false;
+                    if (micBtn) micBtn.classList.remove('recording');
+                    if (currentRobotState === 'LISTENING') {
+                        updateRobotState('IDLE');
+                    }
+                };
+
+                robotRecognition.start();
+            } catch (err) {
+                console.error('Speech recognition exception:', err);
+                isRobotListening = false;
+                if (micBtn) micBtn.classList.remove('recording');
+                updateRobotState('IDLE');
+            }
+        }
+
+        // Text to Speech (Natural Voice Synthesis)
+        function speakAgentText(text) {
+            if (!robotSpeechEnabled || !window.speechSynthesis) return;
+
+            // Stop any ongoing speech
+            window.speechSynthesis.cancel();
+
+            // Clean markdown syntax & emojis for clear speech audio
+            const cleanText = text
+                .replace(/[*#_`>]/g, '')
+                .replace(/[\u{1F300}-\u{1F9FF}]/gu, '')
+                .trim();
+
+            if (!cleanText) return;
+
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            utterance.rate = 1.0;
+            utterance.pitch = 1.02;
+
+            // Try to match a pleasant Indian or Hindi voice if available
+            const voices = window.speechSynthesis.getVoices();
+            const preferredVoice = voices.find(v => v.lang.includes('hi') || v.lang.includes('en-IN')) || voices[0];
+            if (preferredVoice) utterance.voice = preferredVoice;
+
+            utterance.onstart = () => {
+                updateRobotState('SPEAKING');
+            };
+
+            utterance.onend = () => {
+                if (currentRobotState === 'EMERGENCY') {
+                    updateRobotState('EMERGENCY');
+                } else {
+                    updateRobotState('IDLE');
+                }
+            };
+
+            utterance.onerror = () => {
+                updateRobotState('IDLE');
+            };
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // Toggle Voice Output Mute
+        function toggleSpeechOutput() {
+            robotSpeechEnabled = !robotSpeechEnabled;
+            const btn = document.getElementById('robotSpeechToggleBtn');
+            if (btn) {
+                btn.innerText = robotSpeechEnabled ? '🔊' : '🔇';
+                btn.title = robotSpeechEnabled ? 'Voice Output ON' : 'Voice Output Muted';
+            }
+            if (!robotSpeechEnabled && window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+                if (currentRobotState === 'SPEAKING') updateRobotState('IDLE');
+            }
+        }
+
+        // Reset & Clear Chat
+        function resetRobotChat() {
+            robotConversationHistory = [];
+            const chatBox = document.getElementById('robotChatMessages');
+            if (chatBox) {
+                chatBox.innerHTML = `
+                    <div class="agent-msg-bubble">
+                        <div class="agent-msg-avatar">
+                            <img src="/images/sadhu_guru.jpg" alt="Bijli Guru">
+                        </div>
+                        <div class="agent-msg-text">
+                            🌸 Pranam! Main hoon <strong>Bijli Guru (बिजली गुरु)</strong> — ElectroLKO ka aapka guide. 
+                            Aapke ghar me kya electrical pareshani hai? Batayiye, main turant madad karta hoon!
+                        </div>
+                    </div>
+                `;
+            }
+            updateRobotState('IDLE');
+        }
+
+        // Handle Quick Chip click
+        function handleQuickChipClick(text) {
+            const input = document.getElementById('robotInputText');
+            if (input) input.value = text;
+            handleRobotSendClick();
+        }
+
+        // Handle Enter key
+        function handleRobotInputKey(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleRobotSendClick();
+            }
+        }
+
+        // Send Message Handler
+        async function handleRobotSendClick() {
+            const input = document.getElementById('robotInputText');
+            if (!input) return;
+            const text = input.value.trim();
+            if (!text) return;
+
+            // Clear input
+            input.value = '';
+
+            // Add user bubble
+            appendUserMessageBubble(text);
+            scrollRobotChatToBottom();
+
+            // Set thinking state
+            updateRobotState('THINKING');
+
+            // Collect active context
+            const activeArea = (typeof currentAreaKey !== 'undefined' && lucknowAreas[currentAreaKey]) 
+                ? lucknowAreas[currentAreaKey].name 
+                : 'Gomti Nagar, Lucknow';
+
+            const activeCoords = (typeof userHomeMarker !== 'undefined' && userHomeMarker)
+                ? [userHomeMarker.getLatLng().lat, userHomeMarker.getLatLng().lng]
+                : [26.8500, 80.9990];
+
+            try {
+                // Call Laravel AI Agent API
+                const response = await fetch('/api/ai-agent/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                    },
+                    body: JSON.stringify({
+                        message: text,
+                        conversation_history: robotConversationHistory,
+                        user_location: {
+                            area: activeArea,
+                            lat: activeCoords[0],
+                            lng: activeCoords[1]
+                        }
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Server returned status ${response.status}`);
+                }
+
+                const result = await response.json();
+
+                // Check tool used and reflect in UI
+                if (result.tool_used) {
+                    updateRobotState('USING TOOL', result.tool_used);
+                }
+
+                // Check emergency status
+                if (result.state === 'EMERGENCY' || result.data?.emergency) {
+                    updateRobotState('EMERGENCY');
+                }
+
+                // Update memory history
+                if (result.history) {
+                    robotConversationHistory = result.history;
+                } else {
+                    robotConversationHistory.push({ role: 'user', content: text });
+                    robotConversationHistory.push({ role: 'assistant', content: result.message || '' });
+                }
+
+                // Render agent response in chat
+                appendAgentResponseBubble(result);
+                scrollRobotChatToBottom();
+
+                // Speak response aloud
+                if (result.message) {
+                    speakAgentText(result.message);
+                }
+
+                // If not emergency and not speaking, return to IDLE after a moment
+                if (result.state !== 'EMERGENCY' && !robotSpeechEnabled) {
+                    setTimeout(() => updateRobotState('IDLE'), 1200);
+                }
+
+            } catch (err) {
+                console.error('Agent chat error:', err);
+                appendAgentResponseBubble({
+                    message: "Sorry, I had trouble connecting to the server. Please check your internet or retry.",
+                    state: 'IDLE'
+                });
+                updateRobotState('IDLE');
+                scrollRobotChatToBottom();
+            }
+        }
+
+        // Render User Message Bubble
+        function appendUserMessageBubble(text) {
+            const chatBox = document.getElementById('robotChatMessages');
+            if (!chatBox) return;
+            const bubble = document.createElement('div');
+            bubble.className = 'user-msg-bubble';
+            bubble.innerText = text;
+            chatBox.appendChild(bubble);
+        }
+
+        // Render Agent Response Bubble with Rich Content
+        function appendAgentResponseBubble(res) {
+            const chatBox = document.getElementById('robotChatMessages');
+            if (!chatBox) return;
+
+            const bubbleWrap = document.createElement('div');
+            bubbleWrap.className = 'agent-msg-bubble';
+
+            let bubbleHtml = `
+                <div class="agent-msg-avatar">
+                    ${res.state === 'EMERGENCY' ? '⚠️' : '<img src="/images/sadhu_guru.jpg" alt="Bijli Guru">'}
+                </div>
+                <div class="agent-msg-text">
+            `;
+
+            // Emergency Warning Banner inside bubble
+            if (res.state === 'EMERGENCY') {
+                bubbleHtml += `
+                    <div style="background: rgba(239,68,68,0.2); border: 1px solid #ef4444; border-radius: 8px; padding: 8px 10px; margin-bottom: 8px; color: #fca5a5; font-weight: 700;">
+                        🚨 SAFETY WARNING: Do NOT touch exposed wires or sparking switches. Main power turn off karein agar safe ho!
+                    </div>
+                `;
+            }
+
+            // Main Text Message formatted
+            let formattedMessage = (res.message || '')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/`([^`]+)`/g, '<code>$1</code>')
+                .replace(/\n\n/g, '<br><br>')
+                .replace(/\n/g, '<br>');
+            bubbleHtml += `<div>${formattedMessage}</div>`;
+
+            // If Electricians List is attached in response
+            if (res.data && res.data.electricians && res.data.electricians.length > 0) {
+                bubbleHtml += `<div style="margin-top: 10px; display: flex; flex-direction: column; gap: 6px;">`;
+                res.data.electricians.forEach(pro => {
+                    const safeName = (pro.name || 'Electrician').replace(/'/g, "\\'");
+                    const safeArea = pro.area || 'Lucknow';
+                    const rating = pro.rating || '4.8';
+                    const dist = pro.distance_km ? `${pro.distance_km} km` : pro.distance || '';
+
+                    bubbleHtml += `
+                        <div class="robot-pro-card">
+                            <div>
+                                <div class="robot-pro-name">⚡ ${pro.name} <span style="color: #f59e0b; font-size: 11px;">⭐ ${rating}</span></div>
+                                <div class="robot-pro-meta">📍 ${safeArea} ${dist ? '• ' + dist : ''} • ~₹${pro.hourly_rate || '199'}/hr</div>
+                            </div>
+                            <button type="button" class="btn-confirm-robot-booking" onclick="confirmBookingFromAgent('${safeName}')">
+                                Book ${pro.name.split(' ')[0]}
+                            </button>
+                        </div>
+                    `;
+                });
+                bubbleHtml += `</div>`;
+            }
+
+            // If Booking Confirmation Details are attached
+            if (res.data && res.data.booking) {
+                const b = res.data.booking;
+                bubbleHtml += `
+                    <div class="robot-booking-success-card">
+                        <div style="font-weight: 800; font-size: 13px; margin-bottom: 4px;">✅ Booking Confirmed!</div>
+                        <div><strong>Booking ID:</strong> ${b.booking_reference || b.id}</div>
+                        <div><strong>Electrician:</strong> ${b.electrician_name || 'Assigned Pro'}</div>
+                        <div><strong>Service:</strong> ${b.service_name || 'Electrical Repair'}</div>
+                        <div><strong>Scheduled Time:</strong> ${b.scheduled_time || 'Within 30 mins'}</div>
+                        <div style="margin-top: 4px; font-size: 11px; color: #cbd5e1;">Technician is dispatched to ${b.customer_address || 'your address in Lucknow'}.</div>
+                    </div>
+                `;
+            }
+
+            bubbleHtml += `</div>`;
+            bubbleWrap.innerHTML = bubbleHtml;
+            chatBox.appendChild(bubbleWrap);
+        }
+
+        // 1-Click Booking Confirmation Trigger
+        function confirmBookingFromAgent(proName) {
+            const input = document.getElementById('robotInputText');
+            if (input) {
+                input.value = `Yes, please book ${proName}`;
+                handleRobotSendClick();
+            }
+        }
+
+        // Scroll chat to bottom helper
+        function scrollRobotChatToBottom() {
+            const chatBox = document.getElementById('robotChatMessages');
+            if (chatBox) {
+                setTimeout(() => {
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                }, 50);
+            }
+        }
     </script>
 </body>
 </html>

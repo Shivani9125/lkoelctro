@@ -1,0 +1,651 @@
+/* ==========================================================================
+   Bijli Guru (बिजली गुरु) AI Assistant - Warm, Bright & Welcoming UI
+   ========================================================================== */
+
+.electrofix-robot-widget {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Floating Bijli Guru Launcher Pill */
+.robot-launcher-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, #ffffff 0%, #fff7ed 100%);
+  color: #1e293b;
+  border: 2px solid #fdba74;
+  border-radius: 9999px;
+  padding: 8px 18px 8px 8px;
+  cursor: pointer;
+  box-shadow: 0 10px 25px -5px rgba(234, 88, 12, 0.25), 0 0 20px rgba(245, 158, 11, 0.2);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.robot-launcher-btn:hover {
+  transform: translateY(-3px) scale(1.03);
+  border-color: #ea580c;
+  box-shadow: 0 14px 30px -5px rgba(234, 88, 12, 0.35), 0 0 25px rgba(245, 158, 11, 0.3);
+}
+
+.launcher-guru-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid #f59e0b;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+  overflow: visible;
+}
+
+.launcher-guru-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.launcher-halo-badge {
+  position: absolute;
+  top: -6px;
+  right: -4px;
+  font-size: 13px;
+  filter: drop-shadow(0 0 4px #f59e0b);
+  animation: halo-float 2s infinite ease-in-out;
+}
+
+@keyframes halo-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+.launcher-text-col {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.launcher-badge {
+  font-size: 9.5px;
+  font-weight: 800;
+  color: #ea580c;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+.launcher-title {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.2px;
+}
+
+.launcher-live-pulse {
+  width: 8px;
+  height: 8px;
+  background: #10b981;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #10b981;
+  position: relative;
+}
+
+.launcher-live-pulse::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background: rgba(16, 185, 129, 0.4);
+  animation: ping 2s infinite;
+}
+
+@keyframes ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+/* Bijli Guru Console Card Window */
+.robot-console-card {
+  position: absolute;
+  bottom: 60px;
+  right: 0;
+  width: 420px;
+  max-width: calc(100vw - 32px);
+  background: #ffffff;
+  border: 2px solid #fed7aa;
+  border-radius: 24px;
+  box-shadow: 0 25px 60px rgba(154, 52, 18, 0.16), 0 0 35px rgba(245, 158, 11, 0.15);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  backdrop-filter: blur(16px);
+  animation: slide-up-fade 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slide-up-fade {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Header Bar - Warm & Welcoming */
+.robot-console-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+  border-bottom: 1.5px solid #fed7aa;
+}
+
+.console-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.console-bot-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1.5px solid #f59e0b;
+  object-fit: cover;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+}
+
+.console-title {
+  font-size: 14.5px;
+  font-weight: 800;
+  color: #9a3412;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.console-subtitle {
+  font-size: 11px;
+  color: #c2410c;
+  font-weight: 600;
+}
+
+.console-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.console-btn-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid #fed7aa;
+  color: #9a3412;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.console-btn-icon:hover {
+  background: #ffedd5;
+  color: #7c2d12;
+  border-color: #f97316;
+}
+
+/* Sadhu Mahatma Avatar Chamber */
+.robot-chamber {
+  padding: 16px 18px 12px;
+  background: radial-gradient(circle at 50% 25%, #fff1e6 0%, #fffbf5 60%, #ffffff 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-bottom: 1px solid #ffedd5;
+  position: relative;
+  transition: background 0.3s ease;
+}
+
+.robot-chamber.emergency-mode {
+  background: radial-gradient(circle at 50% 25%, #fee2e2 0%, #fff1f2 60%, #ffffff 100%);
+  animation: emergency-alarm-flash 1.5s infinite;
+}
+
+@keyframes emergency-alarm-flash {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.85; }
+}
+
+.guru-avatar-wrapper {
+  position: relative;
+  margin-bottom: 10px;
+  animation: guru-float 4s ease-in-out infinite;
+}
+
+@keyframes guru-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.guru-portrait-ring {
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  padding: 3px;
+  background: linear-gradient(135deg, #f59e0b, #ea580c, #fbbf24);
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.4), 0 4px 10px rgba(0, 0, 0, 0.08);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.robot-chamber.emergency-mode .guru-portrait-ring {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  box-shadow: 0 0 25px rgba(239, 68, 68, 0.6);
+}
+
+.guru-halo-aura {
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.35) 0%, transparent 70%);
+  animation: halo-radiate 3s infinite alternate;
+  pointer-events: none;
+}
+
+.robot-chamber.speaking-mode .guru-halo-aura {
+  animation: halo-radiate-speak 1s infinite alternate;
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.6) 0%, transparent 75%);
+}
+
+.robot-chamber.listening-mode .guru-halo-aura {
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.5) 0%, transparent 70%);
+}
+
+.robot-chamber.emergency-mode .guru-halo-aura {
+  background: radial-gradient(circle, rgba(239, 68, 68, 0.5) 0%, transparent 70%);
+}
+
+@keyframes halo-radiate {
+  0% { transform: scale(0.95); opacity: 0.6; }
+  100% { transform: scale(1.15); opacity: 1; }
+}
+
+@keyframes halo-radiate-speak {
+  0% { transform: scale(1); opacity: 0.7; }
+  100% { transform: scale(1.25); opacity: 1; }
+}
+
+.guru-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #ffffff;
+  border: 2px solid #ffffff;
+  display: block;
+}
+
+.guru-aura-badge {
+  position: absolute;
+  bottom: -4px;
+  right: -2px;
+  background: #ffffff;
+  border: 1.5px solid #f59e0b;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* State Badge */
+.robot-state-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 14px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #9a3412;
+  letter-spacing: 0.3px;
+  margin-bottom: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.state-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #f59e0b;
+  box-shadow: 0 0 6px #f59e0b;
+}
+
+/* Soundwave Equalizer visualizer */
+.robot-audio-visualizer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 3px;
+  height: 14px;
+  width: 140px;
+}
+
+.eq-bar {
+  width: 4px;
+  height: 3px;
+  background: #fdba74;
+  border-radius: 2px;
+  transition: height 0.2s ease, background-color 0.2s ease;
+}
+
+.robot-chamber.speaking-mode .eq-bar,
+.robot-chamber.listening-mode .eq-bar {
+  background: #ea580c;
+  animation: visualizer-eq 0.5s ease-in-out infinite alternate;
+}
+.robot-chamber.listening-mode .eq-bar { background: #10b981; }
+.robot-chamber.emergency-mode .eq-bar { background: #ef4444; }
+
+.eq-bar:nth-child(2) { animation-delay: 0.1s; }
+.eq-bar:nth-child(3) { animation-delay: 0.25s; }
+.eq-bar:nth-child(4) { animation-delay: 0.15s; }
+.eq-bar:nth-child(5) { animation-delay: 0.35s; }
+.eq-bar:nth-child(6) { animation-delay: 0.2s; }
+.eq-bar:nth-child(7) { animation-delay: 0.4s; }
+.eq-bar:nth-child(8) { animation-delay: 0.18s; }
+.eq-bar:nth-child(9) { animation-delay: 0.3s; }
+.eq-bar:nth-child(10) { animation-delay: 0.12s; }
+.eq-bar:nth-child(11) { animation-delay: 0.28s; }
+.eq-bar:nth-child(12) { animation-delay: 0.22s; }
+
+@keyframes visualizer-eq {
+  0% { height: 3px; }
+  100% { height: 14px; }
+}
+
+/* Tool Banner */
+.robot-tool-banner {
+  background: #fffbeb;
+  border-top: 1px solid #fde68a;
+  border-bottom: 1px solid #fde68a;
+  padding: 7px 14px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #b45309;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tool-spinner {
+  animation: spark-pulse 1s infinite;
+}
+
+@keyframes spark-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.25); opacity: 1; filter: drop-shadow(0 0 8px #f59e0b); }
+}
+
+/* Messages Thread - Bright & Super Clean */
+.robot-messages-box {
+  height: 250px;
+  overflow-y: auto;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: #fafaf9;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.agent-msg-bubble {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: 92%;
+  align-self: flex-start;
+}
+
+.agent-msg-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  flex-shrink: 0;
+  border: 1.5px solid #f59e0b;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.agent-msg-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.agent-msg-text {
+  background: #ffffff;
+  border: 1px solid #e7e5e4;
+  color: #1e293b;
+  padding: 10px 14px;
+  border-radius: 4px 16px 16px 16px;
+  font-size: 13px;
+  line-height: 1.5;
+  word-break: break-word;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.user-msg-bubble {
+  align-self: flex-end;
+  max-width: 85%;
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  color: #ffffff;
+  padding: 9px 14px;
+  border-radius: 16px 16px 4px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.45;
+  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.22);
+}
+
+/* Electrician Suggestion Card inside chat */
+.robot-pro-card {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.robot-pro-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #9a3412;
+  margin-bottom: 2px;
+}
+
+.robot-pro-meta {
+  font-size: 11px;
+  color: #78716c;
+}
+
+.btn-confirm-robot-booking {
+  background: #ea580c;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-confirm-robot-booking:hover {
+  background: #c2410c;
+  transform: scale(1.04);
+}
+
+/* Booking Confirmed Card */
+.robot-booking-success-card {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  border-radius: 10px;
+  padding: 12px;
+  margin-top: 8px;
+  color: #065f46;
+  font-size: 12px;
+}
+
+/* Quick Prompt Chips */
+.robot-quick-chips {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 8px 14px;
+  background: #ffffff;
+  border-top: 1px solid #fed7aa;
+  scrollbar-width: none;
+}
+
+.robot-quick-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.quick-chip {
+  background: #fff7ed;
+  border: 1px solid #fdba74;
+  border-radius: 9999px;
+  color: #9a3412;
+  padding: 5px 11px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.quick-chip:hover {
+  background: #ffedd5;
+  color: #7c2d12;
+  border-color: #ea580c;
+}
+
+/* Input Bar */
+.robot-input-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px 12px;
+  background: #ffffff;
+  border-top: 1px solid #f5f5f4;
+}
+
+.robot-mic-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #fff7ed;
+  border: 1.5px solid #fdba74;
+  color: #ea580c;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  flex-shrink: 0;
+  transition: all 0.25s ease;
+}
+
+.robot-mic-btn:hover {
+  background: #ea580c;
+  color: #ffffff;
+  border-color: #ea580c;
+  box-shadow: 0 0 12px rgba(234, 88, 12, 0.4);
+}
+
+.robot-mic-btn.recording {
+  background: #ef4444;
+  color: #ffffff;
+  border-color: #ef4444;
+  box-shadow: 0 0 18px rgba(239, 68, 68, 0.6);
+}
+
+.robot-mic-btn.recording .mic-pulse-ring {
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid #ef4444;
+  animation: sonic-pulse 1.2s infinite;
+}
+
+.robot-input-bar input {
+  flex: 1;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 9px 12px;
+  color: #0f172a;
+  font-size: 13px;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.2s ease;
+}
+
+.robot-input-bar input:focus {
+  border-color: #f97316;
+  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.15);
+  background: #ffffff;
+}
+
+.robot-send-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #ea580c;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.2s ease;
+}
+
+.robot-send-btn:hover {
+  background: #c2410c;
+}

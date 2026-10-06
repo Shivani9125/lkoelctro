@@ -19,3 +19,5 @@ services:
         value: file
       - key: CACHE_STORE
         value: file
+      - key: GEMINI_API_KEY
+        sync: false
