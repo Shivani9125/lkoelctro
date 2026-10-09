@@ -40,6 +40,7 @@ RUN cp .env.example .env && rm -f bootstrap/cache/*.php
 
 # Copy built React frontend assets into Laravel's public directory
 COPY --from=frontend-builder /app/frontend/dist ./public/app
+COPY --from=frontend-builder /app/frontend/dist/assets ./public/assets
 
 # Install PHP dependencies safely
 RUN composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-reqs

@@ -5,6 +5,7 @@ services:
     dockerfilePath: ./Dockerfile
     plan: free
     region: oregon
+    healthCheckPath: /api/health
     autoDeploy: true
     envVars:
       - key: APP_ENV
@@ -21,6 +22,12 @@ services:
         value: file
       - key: GEMINI_API_KEY
         sync: false
+      - key: ELEVENLABS_API_KEY
+        sync: false
+      - key: ELEVENLABS_VOICE_ID
+        value: pNInz6obpgDQGcFmaJgB
+      - key: ELEVENLABS_MODEL_ID
+        value: eleven_multilingual_v2
       - key: OLLAMA_BASE_URL
         sync: false
       - key: MODAL_OLLAMA_URL

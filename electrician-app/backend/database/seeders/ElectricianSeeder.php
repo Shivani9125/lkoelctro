@@ -12,6 +12,10 @@ class ElectricianSeeder extends Seeder
      */
     public function run(): void
     {
+        if (Electrician::count() >= 120) {
+            return;
+        }
+
         // 6 Major areas in Lucknow with base coordinates
         $areas = [
             'Hazratganj' => [
