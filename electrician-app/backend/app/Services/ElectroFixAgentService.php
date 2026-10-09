@@ -287,27 +287,34 @@ class ElectroFixAgentService
      */
     public function create_booking(
         int $electricianId,
-        string $customerName,
-        string $customerPhone,
-        string $customerAddress,
-        string $serviceType,
-        string $timeSlot = 'Immediate (Within 30 mins)',
-        string $notes = ''
+        ?string $customerName = 'Customer',
+        ?string $customerPhone = '+91 9876543210',
+        ?string $customerAddress = 'Lucknow Home Address',
+        ?string $serviceType = 'General Electrical Fix',
+        ?string $timeSlot = 'Immediate (Within 30 mins)',
+        ?string $notes = ''
     ): array {
         $pro = Electrician::find($electricianId);
         $reference = 'ELKO-' . strtoupper(substr(md5(uniqid(rand(), true)), 0, 6));
 
+        $cleanCustomerName = !empty($customerName) ? trim($customerName) : 'Customer';
+        $cleanCustomerPhone = !empty($customerPhone) ? trim($customerPhone) : '+91 9876543210';
+        $cleanCustomerAddress = !empty($customerAddress) ? trim($customerAddress) : 'Lucknow Home Address';
+        $cleanServiceType = !empty($serviceType) ? trim($serviceType) : 'General Electrical Fix';
+        $cleanTimeSlot = !empty($timeSlot) ? trim($timeSlot) : 'Immediate (Within 30 mins)';
+        $cleanNotes = !empty($notes) ? trim($notes) : 'Booked via ElectroFix AI Assistant';
+
         $booking = Booking::create([
             'booking_reference' => $reference,
             'electrician_id' => $electricianId,
-            'customer_name' => $customerName ?: 'Customer',
-            'customer_phone' => $customerPhone ?: '+91 9876543210',
-            'customer_address' => $customerAddress ?: 'Lucknow Home Address',
+            'customer_name' => $cleanCustomerName,
+            'customer_phone' => $cleanCustomerPhone,
+            'customer_address' => $cleanCustomerAddress,
             'area' => $pro ? $pro->area : 'Lucknow',
-            'service_type' => $serviceType ?: 'General Electrical Fix',
-            'urgency' => (stripos($serviceType, 'emergency') !== false) ? 'emergency' : 'standard',
-            'time_slot' => $timeSlot,
-            'notes' => $notes ?: 'Booked via ElectroFix AI Assistant',
+            'service_type' => $cleanServiceType,
+            'urgency' => (stripos($cleanServiceType, 'emergency') !== false) ? 'emergency' : 'standard',
+            'time_slot' => $cleanTimeSlot,
+            'notes' => $cleanNotes,
             'status' => 'confirmed'
         ]);
 
@@ -327,14 +334,19 @@ class ElectroFixAgentService
     /**
      * Tool 8: get_booking_status()
      */
-    public function get_booking_status(string $bookingReference): array
+    public function get_booking_status(?string $bookingReference): array
     {
+        $cleanRef = trim((string) $bookingReference);
+        if (empty($cleanRef)) {
+            return ['success' => false, 'message' => "Please provide a valid booking reference."];
+        }
+
         $booking = Booking::with('electrician')
-            ->where('booking_reference', trim($bookingReference))
+            ->where('booking_reference', $cleanRef)
             ->first();
 
         if (!$booking) {
-            return ['success' => false, 'message' => "No booking found with ID: $bookingReference"];
+            return ['success' => false, 'message' => "No booking found with ID: {$cleanRef}"];
         }
 
         return [
@@ -353,11 +365,16 @@ class ElectroFixAgentService
     /**
      * Tool 9: cancel_booking()
      */
-    public function cancel_booking(string $bookingReference): array
+    public function cancel_booking(?string $bookingReference): array
     {
-        $booking = Booking::where('booking_reference', trim($bookingReference))->first();
+        $cleanRef = trim((string) $bookingReference);
+        if (empty($cleanRef)) {
+            return ['success' => false, 'message' => "Please provide a valid booking reference."];
+        }
+
+        $booking = Booking::where('booking_reference', $cleanRef)->first();
         if (!$booking) {
-            return ['success' => false, 'message' => "No booking found with ID: $bookingReference"];
+            return ['success' => false, 'message' => "No booking found with ID: {$cleanRef}"];
         }
 
         $booking->update(['status' => 'cancelled']);
@@ -376,20 +393,22 @@ class ElectroFixAgentService
      * logs into database, and attaches AI diagnosis.
      */
     public function send_contact_email(
-        string $name,
-        string $email,
-        string $phone = '',
-        string $message = '',
-        string $subject = '',
-        string $area = 'Lucknow',
-        string $channel = 'ai_agent_chat',
+        ?string $name = 'Customer',
+        ?string $email = '',
+        ?string $phone = '',
+        ?string $message = '',
+        ?string $subject = '',
+        ?string $area = 'Lucknow',
+        ?string $channel = 'ai_agent_chat',
         ?string $aiDiagnosis = null,
         ?string $aiPriority = null
     ): array {
-        $cleanEmail = trim($email);
-        $cleanName = trim($name) ?: 'Customer';
-        $cleanMessage = trim($message) ?: 'General inquiry for ElectroFix Lucknow.';
-        $cleanArea = trim($area) ?: 'Lucknow';
+        $cleanEmail = trim((string) $email);
+        $cleanName = trim((string) $name) ?: 'Customer';
+        $cleanMessage = trim((string) $message) ?: 'General inquiry for ElectroFix Lucknow.';
+        $cleanArea = trim((string) $area) ?: 'Lucknow';
+        $cleanPhone = trim((string) $phone);
+        $cleanSubject = trim((string) $subject);
 
         // Perform AI Diagnosis & Triage if not provided
         if (empty($aiDiagnosis) || empty($aiPriority)) {
@@ -532,14 +551,15 @@ class ElectroFixAgentService
     /**
      * Auto-draft & polish contact inquiry using AI
      */
-    public function generate_ai_contact_draft(string $problemDescription, string $area = 'Lucknow'): array
+    public function generate_ai_contact_draft(?string $problemDescription = '', ?string $area = 'Lucknow'): array
     {
-        $analysis = $this->analyzeIssueForContact($problemDescription, $area);
+        $cleanDesc = trim((string) $problemDescription);
+        $cleanArea = trim((string) $area) ?: 'Lucknow';
+        $analysis = $this->analyzeIssueForContact($cleanDesc, $cleanArea);
 
-        $cleanDesc = trim($problemDescription);
         $polished = "Dear ElectroFix Lucknow Support,\n\n"
-            . "I am requesting an electrical service inspection for my premises located in {$area}.\n\n"
-            . "Issue Summary: " . ucfirst($cleanDesc) . "\n\n"
+            . "I am requesting an electrical service inspection for my premises located in {$cleanArea}.\n\n"
+            . "Issue Summary: " . ucfirst($cleanDesc ?: 'General electrical inspection requested') . "\n\n"
             . "Kindly arrange a certified master technician with upfront transparent pricing and 30-day service warranty.\n\n"
             . "Thank you,\nCustomer";
 

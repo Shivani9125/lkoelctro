@@ -134,12 +134,12 @@ class AiAgentController extends Controller
 
         $result = $this->agentService->create_booking(
             (int) $request->input('electrician_id'),
-            $request->input('customer_name', 'Customer'),
-            $request->input('customer_phone', '+91 9812340001'),
-            $request->input('customer_address', 'Lucknow Address'),
-            $request->input('service_type', 'Electrical Repair'),
-            $request->input('time_slot', 'Within 30 mins'),
-            $request->input('notes', 'Booked via AI Agent')
+            (string) ($request->input('customer_name') ?: 'Customer'),
+            (string) ($request->input('customer_phone') ?: '+91 9812340001'),
+            (string) ($request->input('customer_address') ?: 'Lucknow Address'),
+            (string) ($request->input('service_type') ?: 'Electrical Repair'),
+            (string) ($request->input('time_slot') ?: 'Within 30 mins'),
+            (string) ($request->input('notes') ?: 'Booked via AI Agent')
         );
 
         return response()->json($result);
