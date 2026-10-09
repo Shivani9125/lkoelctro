@@ -15,6 +15,12 @@ class Electrician extends Model
         'email',
         'address',
         'area',
+        'specialization',
+        'experience',
+        'rating',
+        'completed_jobs',
+        'starting_price',
+        'badge',
         'latitude',
         'longitude',
         'status',
@@ -23,5 +29,7 @@ class Electrician extends Model
     protected $casts = [
         'latitude' => 'float',
         'longitude' => 'float',
+        'rating' => 'float',
+        'completed_jobs' => 'integer',
     ];
 }

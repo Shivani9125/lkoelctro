@@ -21,3 +21,9 @@ services:
         value: file
       - key: GEMINI_API_KEY
         sync: false
+      - key: OLLAMA_BASE_URL
+        sync: false
+      - key: MODAL_OLLAMA_URL
+        sync: false
+      - key: OLLAMA_MODEL
+        sync: false

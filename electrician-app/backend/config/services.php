@@ -40,4 +40,10 @@ return [
         'model' => env('GEMINI_MODEL', 'gemini-1.5-flash'),
     ],
 
+    'ollama' => [
+        'base_url' => env('OLLAMA_BASE_URL', env('MODAL_OLLAMA_URL', 'http://127.0.0.1:11434')),
+        'model' => env('OLLAMA_MODEL', 'llama3.2'),
+        'timeout' => env('OLLAMA_TIMEOUT', 10),
+    ],
+
 ];

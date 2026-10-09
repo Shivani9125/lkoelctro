@@ -1,0 +1,9 @@
+#!/usr/bin/env php
+<?php
+/**
+ * Root artisan proxy runner
+ * Allows running `php artisan ...` directly from repository root.
+ */
+
+chdir(__DIR__ . '/electrician-app/backend');
+require __DIR__ . '/electrician-app/backend/artisan';

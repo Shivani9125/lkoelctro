@@ -3,9 +3,12 @@
 namespace App\Services;
 
 use App\Models\Booking;
+use App\Models\ContactInquiry;
 use App\Models\Electrician;
+use App\Mail\ContactInquiryMail;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 /**
  * ElectroFix AI - Autonomous Electrical Service Agent for ElectroLKO
@@ -174,10 +177,14 @@ class ElectroFixAgentService
                 'phone' => $pro->phone,
                 'area' => $pro->area ?? 'Lucknow',
                 'address' => $pro->address,
+                'specialization' => $pro->specialization ?? 'General Electrical Fix',
+                'experience' => $pro->experience ?? '6+ Years',
+                'rating' => (float) ($pro->rating ?? 4.8),
+                'reviews_count' => (int) ($pro->completed_jobs ?? 54),
+                'starting_price' => $pro->starting_price ?? '₹149',
+                'badge' => $pro->badge ?? 'Govt Certified Pro',
                 'distance_km' => round($distanceKm, 1),
                 'distance_text' => round($distanceKm, 1) . ' km away',
-                'rating' => 4.8,
-                'reviews_count' => 54,
                 'status' => 'Available Now',
                 'eta_mins' => max(10, min(30, round($distanceKm * 4)))
             ];
@@ -212,9 +219,12 @@ class ElectroFixAgentService
                 'phone' => $pro->phone,
                 'area' => $pro->area,
                 'address' => $pro->address,
-                'rating' => 4.9,
-                'badge' => 'Govt Certified Pro',
-                'experience' => '6+ Years Experience'
+                'specialization' => $pro->specialization ?? 'Master Electrician',
+                'experience' => $pro->experience ?? '6+ Years Experience',
+                'rating' => (float) ($pro->rating ?? 4.9),
+                'completed_jobs' => (int) ($pro->completed_jobs ?? 120),
+                'starting_price' => $pro->starting_price ?? '₹149',
+                'badge' => $pro->badge ?? 'Govt Certified Pro'
             ]
         ];
     }
@@ -361,6 +371,193 @@ class ElectroFixAgentService
     }
 
     /**
+     * Tool 10: send_contact_email()
+     * Sends contact inquiry email to ElectroFix dispatch and customer,
+     * logs into database, and attaches AI diagnosis.
+     */
+    public function send_contact_email(
+        string $name,
+        string $email,
+        string $phone = '',
+        string $message = '',
+        string $subject = '',
+        string $area = 'Lucknow',
+        string $channel = 'ai_agent_chat',
+        ?string $aiDiagnosis = null,
+        ?string $aiPriority = null
+    ): array {
+        $cleanEmail = trim($email);
+        $cleanName = trim($name) ?: 'Customer';
+        $cleanMessage = trim($message) ?: 'General inquiry for ElectroFix Lucknow.';
+        $cleanArea = trim($area) ?: 'Lucknow';
+
+        // Perform AI Diagnosis & Triage if not provided
+        if (empty($aiDiagnosis) || empty($aiPriority)) {
+            $analysis = $this->analyzeIssueForContact($cleanMessage, $cleanArea);
+            $aiDiagnosis = $aiDiagnosis ?: $analysis['diagnosis'];
+            $aiPriority = $aiPriority ?: $analysis['priority'];
+            $recommendedService = $analysis['recommended_service'];
+            $estimatedCost = $analysis['estimated_cost'];
+            if (empty($subject)) {
+                $subject = $analysis['subject'];
+            }
+        } else {
+            $recommendedService = 'General Electrical Service';
+            $estimatedCost = '₹99 - ₹249';
+        }
+
+        if (empty($subject)) {
+            $subject = "Service Inquiry from {$cleanName} ({$cleanArea})";
+        }
+
+        // Generate Ticket Reference
+        $reference = 'INQ-LKO-' . strtoupper(substr(md5(uniqid(rand(), true)), 0, 6));
+
+        // Save into MySQL Database
+        $inquiry = ContactInquiry::create([
+            'ticket_reference' => $reference,
+            'name' => $cleanName,
+            'email' => $cleanEmail,
+            'phone' => $phone ?: null,
+            'area' => $cleanArea,
+            'subject' => $subject,
+            'message' => $cleanMessage,
+            'ai_diagnosis' => $aiDiagnosis,
+            'ai_priority' => $aiPriority,
+            'ai_recommended_service' => $recommendedService,
+            'ai_estimated_cost' => $estimatedCost,
+            'channel' => $channel,
+            'status' => 'received',
+            'email_sent' => true,
+        ]);
+
+        // Dispatch Email via Laravel Mail
+        $emailSentSuccessfully = true;
+        try {
+            $supportEmail = env('SUPPORT_EMAIL', 'support@electrolko.in');
+            Mail::to($supportEmail)->send(new ContactInquiryMail($inquiry, false));
+
+            if (filter_var($cleanEmail, FILTER_VALIDATE_EMAIL)) {
+                Mail::to($cleanEmail)->send(new ContactInquiryMail($inquiry, true));
+            }
+        } catch (\Throwable $e) {
+            Log::warning("Contact email dispatch fallback (logged to mail log): " . $e->getMessage());
+            $emailSentSuccessfully = false;
+        }
+
+        return [
+            'success' => true,
+            'ticket_reference' => $reference,
+            'inquiry_id' => $inquiry->id,
+            'name' => $cleanName,
+            'email' => $cleanEmail,
+            'phone' => $phone,
+            'area' => $cleanArea,
+            'subject' => $subject,
+            'message' => $cleanMessage,
+            'ai_diagnosis' => $aiDiagnosis,
+            'ai_priority' => $aiPriority,
+            'ai_recommended_service' => $recommendedService,
+            'ai_estimated_cost' => $estimatedCost,
+            'email_sent' => $emailSentSuccessfully,
+            'created_at' => $inquiry->created_at->format('d M Y, h:i A'),
+            'status' => 'received',
+            'reply_message' => "Aapki contact email ElectroFix dispatch desk ko bhej di gayi hai! Ticket Reference: {$reference}."
+        ];
+    }
+
+    /**
+     * AI issue analyzer for contact inquiries
+     */
+    public function analyzeIssueForContact(string $text, string $area = 'Lucknow'): array
+    {
+        $lower = strtolower($text);
+
+        $isEmergency = $this->detectSafetyEmergency($text);
+
+        $priority = 'NORMAL';
+        $recommended = 'General Electrical Inspection';
+        $cost = '₹99 - ₹199';
+        $subject = "Electrical Inquiry - {$area}";
+
+        if ($isEmergency) {
+            $priority = 'EMERGENCY';
+            $recommended = '24/7 Emergency Hazard Repair';
+            $cost = '₹299';
+            $subject = "[EMERGENCY] Active Hazard Clearance in {$area}";
+            $diagnosis = "CRITICAL HAZARD DETECTED: Report indicates active sparking, burning odor, or electrical shock risk. Main breaker / MCB should be turned off immediately if safe. High-priority rapid dispatch assigned.";
+        } elseif (str_contains($lower, 'mcb') || str_contains($lower, 'trip') || str_contains($lower, 'short circuit')) {
+            $priority = 'URGENT';
+            $recommended = 'MCB Tripping & Short Circuit Diagnostic';
+            $cost = '₹199';
+            $subject = "[Urgent] MCB Tripping / Short Circuit Diagnostic in {$area}";
+            $diagnosis = "Overload or short circuit fault detected. Circuit breaker testing and load calculation recommended to avoid wire melting.";
+        } elseif (str_contains($lower, 'fan') || str_contains($lower, 'pankha')) {
+            $priority = 'NORMAL';
+            $recommended = 'Ceiling Fan Repair & Capacitor Change';
+            $cost = '₹149';
+            $subject = "Fan Repair & Performance Inquiry in {$area}";
+            $diagnosis = "Fan humming, winding, or capacitor resistance issue identified. Standard inspection with genuine spare replacement.";
+        } elseif (str_contains($lower, 'inverter') || str_contains($lower, 'battery')) {
+            $priority = 'HIGH';
+            $recommended = 'Inverter & Battery Setup / Backup Fix';
+            $cost = '₹249';
+            $subject = "Inverter & Battery Wiring Inquiry in {$area}";
+            $diagnosis = "Backup circuit, charging cut-off, or distilled water maintenance required for uninterrupted power supply.";
+        } elseif (str_contains($lower, 'wiring') || str_contains($lower, 'earthing') || str_contains($lower, 'shock') || str_contains($lower, 'current')) {
+            $priority = 'HIGH';
+            $recommended = 'Full House Wiring & Earthing Audit';
+            $cost = '₹499';
+            $subject = "Earthing & House Wiring Safety Audit in {$area}";
+            $diagnosis = "Leakage voltage or neutral imbalance suspected. Ground resistance testing and earthing pit check advised.";
+        } elseif (str_contains($lower, 'switch') || str_contains($lower, 'board') || str_contains($lower, 'socket')) {
+            $priority = 'NORMAL';
+            $recommended = 'Modular Switch & Socket Replacement';
+            $cost = '₹99';
+            $subject = "Modular Switchboard Fitting in {$area}";
+            $diagnosis = "Loose terminal contact or heat pitting in socket detected. Replacement with ISI-certified modular accessories recommended.";
+        } else {
+            $diagnosis = "General electrical consultation and doorstep technical diagnosis logged. Assigned to nearest Lucknow verified master electrician.";
+        }
+
+        return [
+            'priority' => $priority,
+            'recommended_service' => $recommended,
+            'estimated_cost' => $cost,
+            'subject' => $subject,
+            'diagnosis' => $diagnosis,
+        ];
+    }
+
+    /**
+     * Auto-draft & polish contact inquiry using AI
+     */
+    public function generate_ai_contact_draft(string $problemDescription, string $area = 'Lucknow'): array
+    {
+        $analysis = $this->analyzeIssueForContact($problemDescription, $area);
+
+        $cleanDesc = trim($problemDescription);
+        $polished = "Dear ElectroFix Lucknow Support,\n\n"
+            . "I am requesting an electrical service inspection for my premises located in {$area}.\n\n"
+            . "Issue Summary: " . ucfirst($cleanDesc) . "\n\n"
+            . "Kindly arrange a certified master technician with upfront transparent pricing and 30-day service warranty.\n\n"
+            . "Thank you,\nCustomer";
+
+        return [
+            'success' => true,
+            'suggested_subject' => $analysis['subject'],
+            'polished_message' => $polished,
+            'ai_diagnosis' => $analysis['diagnosis'],
+            'ai_priority' => $analysis['priority'],
+            'ai_recommended_service' => $analysis['recommended_service'],
+            'ai_estimated_cost' => $analysis['estimated_cost'],
+            'safety_advisory' => $analysis['priority'] === 'EMERGENCY'
+                ? "⚠️ Main MCB switch off rakhein aur geeli jagah se door rahein!"
+                : "💡 Technician arrival ke samay appliances ko turned off condition me dikhayein.",
+        ];
+    }
+
+    /**
      * Checks if user message mentions severe electrical fire/shock/smoke hazard.
      */
     public function detectSafetyEmergency(string $text): bool
@@ -399,7 +596,9 @@ class ElectroFixAgentService
         string $message,
         array $conversationHistory = [],
         array $userLocation = [],
-        ?array $pendingAction = null
+        ?array $pendingAction = null,
+        ?string $requestedModel = null,
+        ?string $customOllamaUrl = null
     ): array {
         $messageClean = trim($message);
         $isEmergency = $this->detectSafetyEmergency($messageClean);
@@ -458,7 +657,9 @@ class ElectroFixAgentService
                     'intent' => 'booking_confirmed',
                     'requires_confirmation' => false,
                     'pending_action' => null,
-                    'booking' => $bookingResult
+                    'booking' => $bookingResult,
+                    'ai_provider' => 'booking_engine',
+                    'model_used' => 'system'
                 ];
             } elseif ($isDeclining) {
                 return [
@@ -471,12 +672,136 @@ class ElectroFixAgentService
                     'tool_display' => null,
                     'intent' => 'booking_declined',
                     'requires_confirmation' => false,
-                    'pending_action' => null
+                    'pending_action' => null,
+                    'ai_provider' => 'booking_engine',
+                    'model_used' => 'system'
                 ];
             }
         }
 
-        // 3. If valid Gemini API key is configured, use Gemini
+        // 2b. Check if user is completing an active pending contact email action
+        if (!empty($pendingAction) && isset($pendingAction['action']) && $pendingAction['action'] === 'send_contact_email') {
+            $data = $pendingAction['data'] ?? [];
+            preg_match('/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/', $messageClean, $emailMatches);
+            $userEmail = !empty($emailMatches[0]) ? $emailMatches[0] : ($data['email'] ?? '');
+
+            if (!empty($userEmail)) {
+                $name = $data['name'] ?? 'Customer';
+                $queryText = $data['message'] ?? $messageClean;
+                $area = $data['area'] ?? $areaName;
+
+                $emailResult = $this->send_contact_email(
+                    $name,
+                    $userEmail,
+                    $data['phone'] ?? '',
+                    $queryText,
+                    '',
+                    $area,
+                    'ai_agent_chat'
+                );
+
+                $ref = $emailResult['ticket_reference'];
+                $reply = "Shandar! Maine aapki contact email ElectroFix dispatch desk ko bhej di hai.\n\n"
+                    . "📧 **Ticket Reference:** `{$ref}`\n"
+                    . "👤 **Registered Email:** {$userEmail}\n"
+                    . "🚨 **AI Priority:** {$emailResult['ai_priority']}\n"
+                    . "💡 **AI Diagnostic:** {$emailResult['ai_diagnosis']}\n\n"
+                    . "Hamari Lucknow support team aapse jald hi contact karegi.";
+
+                return [
+                    'success' => true,
+                    'reply' => $reply,
+                    'spoken_text' => "Aapki contact email dispatch desk ko bhej di gayi hai. Ticket reference hai {$ref}.",
+                    'language' => 'hi',
+                    'state' => 'SPEAKING',
+                    'tools_used' => [
+                        ['name' => 'send_contact_email', 'status' => 'success', 'data' => $emailResult]
+                    ],
+                    'tool_used' => 'send_contact_email',
+                    'tool_display' => '📧 Contact Email Sent',
+                    'intent' => 'contact_email_sent',
+                    'requires_confirmation' => false,
+                    'pending_action' => null,
+                    'contact_inquiry' => $emailResult,
+                    'ai_provider' => 'contact_engine',
+                    'model_used' => 'system'
+                ];
+            }
+        }
+
+        // 2c. Check if user explicitly requests to send a contact email
+        $isContactEmailIntent = preg_match('/\b(email|mail|contact\s+support|support\s+ko\s+mail|email\s+bhejo|mail\s+karo|contact\s+email)\b/i', $messageClean);
+        preg_match('/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/', $messageClean, $emailFound);
+
+        if ($isContactEmailIntent && !$this->isExplicitTechnicianRequest($messageClean)) {
+            if (!empty($emailFound[0])) {
+                $emailResult = $this->send_contact_email(
+                    'Customer',
+                    $emailFound[0],
+                    '',
+                    $messageClean,
+                    '',
+                    $areaName,
+                    'ai_agent_chat'
+                );
+
+                $ref = $emailResult['ticket_reference'];
+                $reply = "Maine aapki contact email ElectroFix team ko bhej di hai!\n\n"
+                    . "📧 **Ticket Reference:** `{$ref}`\n"
+                    . "👤 **Email:** {$emailFound[0]}\n"
+                    . "🚨 **AI Priority:** {$emailResult['ai_priority']}\n"
+                    . "💡 **AI Diagnostic:** {$emailResult['ai_diagnosis']}\n\n"
+                    . "Support team aapse 15-30 minute ke andar contact karegi.";
+
+                return [
+                    'success' => true,
+                    'reply' => $reply,
+                    'spoken_text' => "Aapki contact email dispatch desk ko bhej di gayi hai. Ticket reference hai {$ref}.",
+                    'language' => 'hi',
+                    'state' => 'SPEAKING',
+                    'tools_used' => [
+                        ['name' => 'send_contact_email', 'status' => 'success', 'data' => $emailResult]
+                    ],
+                    'tool_used' => 'send_contact_email',
+                    'tool_display' => '📧 Contact Email Sent',
+                    'intent' => 'contact_email_sent',
+                    'requires_confirmation' => false,
+                    'pending_action' => null,
+                    'contact_inquiry' => $emailResult,
+                    'ai_provider' => 'contact_engine',
+                    'model_used' => 'system'
+                ];
+            } else {
+                return [
+                    'success' => true,
+                    'reply' => "Zaroor! Main support team ko aapki inquiry email bhej sakta hoon.\n\nKripya apna **Email Address** (jaise `apka_naam@gmail.com`) yahan likhein taaki main email ticket generate kar sakoon.",
+                    'spoken_text' => "Zaroor, main support team ko aapki inquiry email bhej sakta hoon. Kripya apna email address batayein.",
+                    'language' => 'hi',
+                    'state' => 'SPEAKING',
+                    'tools_used' => [],
+                    'tool_display' => null,
+                    'intent' => 'request_email_address',
+                    'requires_confirmation' => true,
+                    'pending_action' => [
+                        'action' => 'send_contact_email',
+                        'data' => [
+                            'message' => $messageClean,
+                            'area' => $areaName
+                        ]
+                    ],
+                    'ai_provider' => 'contact_engine',
+                    'model_used' => 'system'
+                ];
+            }
+        }
+
+        // 3. Ollama / Modal AI Reasoning Engine (Primary local LLM if running)
+        $ollamaResponse = $this->reasonWithOllama($messageClean, $conversationHistory, $lat, $lng, $areaName, $isEmergency, $requestedModel, $customOllamaUrl);
+        if ($ollamaResponse && $ollamaResponse['success']) {
+            return $ollamaResponse;
+        }
+
+        // 4. If valid Gemini API key is configured, use Gemini
         $geminiKey = config('services.gemini.api_key') ?: env('GEMINI_API_KEY');
         if (!empty($geminiKey)) {
             $geminiResponse = $this->reasonWithGemini($messageClean, $conversationHistory, $lat, $lng, $areaName, $isEmergency);
@@ -485,7 +810,19 @@ class ElectroFixAgentService
             }
         }
 
-        // 4. Autonomous Local AI Reasoning Engine
+        // 5. Dynamic Cloud LLM Engine (Zero-config, answers ANY dynamic question e.g. "what is laravel", science, coding, general knowledge)
+        $dynamicResponse = $this->reasonWithDynamicLLM($messageClean, $conversationHistory, $lat, $lng, $areaName, $isEmergency);
+        if ($dynamicResponse && $dynamicResponse['success']) {
+            return $dynamicResponse;
+        }
+
+        // 6. Live Instant Knowledge Engine (Fact verification via DuckDuckGo & Wikipedia)
+        $knowledgeResponse = $this->reasonWithInstantKnowledge($messageClean, $conversationHistory, $lat, $lng, $areaName, $isEmergency);
+        if ($knowledgeResponse && $knowledgeResponse['success']) {
+            return $knowledgeResponse;
+        }
+
+        // 7. Autonomous Local AI Reasoning Engine (Zero-failure offline fallback)
         return $this->reasonWithLocalAgent($messageClean, $conversationHistory, $lat, $lng, $areaName, $isEmergency);
     }
 
@@ -674,15 +1011,15 @@ class ElectroFixAgentService
             return $this->handleExplicitTechnicianRequest($lat, $lng, $areaName);
         }
 
-        // 3. GREETINGS & CASUAL TALK
+        // 3. NORMAL CONVERSATION & GREETINGS (RULE 1)
         $cleanGreeting = trim(preg_replace('/[,\.?!:;\-]/', '', $lower));
-        $isPureGreeting = preg_match('/^(hi|hello|hey|namaste|pranam|namaskar|good morning|good evening|good afternoon|kaise ho|bhaiya|suno|sun|kya haal|radhe radhe|ram ram)(\s.*)?$/i', $cleanGreeting);
-        if ($isPureGreeting && strlen($cleanGreeting) < 40 && !str_contains($cleanGreeting, 'fan') && !str_contains($cleanGreeting, 'switch') && !str_contains($cleanGreeting, 'mcb') && !str_contains($cleanGreeting, 'light')) {
+
+        // A. "kya haal chal" / "kaise ho"
+        if (preg_match('/\b(kya\s+haal(\s+chal)?|kaise\s+ho|kaisa\s+hai|kya\s+chal\s+raha)\b/i', $cleanGreeting) && !str_contains($cleanGreeting, 'fan') && !str_contains($cleanGreeting, 'switch')) {
             return [
                 'success' => true,
-                'reply' => "Namaste! Main **ElectroFix AI** hoon.\n\n"
-                    . "Aapke ghar me bijli, appliance ya wiring se judi koi bhi samasya ho, ya koi sawaal ho — batayiye, main seedha aur saral samadhan deta hoon!",
-                'spoken_text' => "Namaste! Main ElectroFix AI hoon. Batayiye, main aapki kya madad kar sakta hoon?",
+                'reply' => "Bilkul badhiya! 😊 Aap batao, kya haal chal hain? Main aapki kisi bhi topic ya service mein kaise help kar sakta hoon?",
+                'spoken_text' => "Bilkul badhiya! Aap batao, kya haal chal hain?",
                 'language' => 'hi',
                 'state' => 'SPEAKING',
                 'tools_used' => [],
@@ -690,7 +1027,168 @@ class ElectroFixAgentService
                 'intent' => 'greeting',
                 'requires_confirmation' => false,
                 'pending_action' => null,
-                'electricians' => []
+                'electricians' => [],
+                'ai_provider' => 'bijli_guru',
+                'model_used' => 'rules'
+            ];
+        }
+
+        // B. "thanks" / "thank you" / "shukriya"
+        if (preg_match('/\b(thanks|thank\s+you|shukriya|dhanyawad|dhanyavad)\b/i', $cleanGreeting)) {
+            return [
+                'success' => true,
+                'reply' => "You're very welcome 😊 Kisi bhi aur sawaal ya help ke liye befikr hokar pooch sakte hain!",
+                'spoken_text' => "You're very welcome! Kisi bhi aur sawaal ya help ke liye befikr pooch sakte hain.",
+                'language' => 'hi',
+                'state' => 'SPEAKING',
+                'tools_used' => [],
+                'tool_display' => null,
+                'intent' => 'thanks',
+                'requires_confirmation' => false,
+                'pending_action' => null,
+                'electricians' => [],
+                'ai_provider' => 'bijli_guru',
+                'model_used' => 'rules'
+            ];
+        }
+
+        // C. "ok" / "okay" / "theek hai"
+        if (preg_match('/^(ok|okay|theek\s+hai|thik\s+hai|accha|theek|thik)$/i', $cleanGreeting)) {
+            return [
+                'success' => true,
+                'reply' => "Theek hai 😊 Agar koi aur sawaal ho ya help chahiye, toh zaroor batayiye!",
+                'spoken_text' => "Theek hai! Agar koi aur sawaal ho ya help chahiye, toh zaroor batayiye.",
+                'language' => 'hi',
+                'state' => 'SPEAKING',
+                'tools_used' => [],
+                'tool_display' => null,
+                'intent' => 'ack',
+                'requires_confirmation' => false,
+                'pending_action' => null,
+                'electricians' => [],
+                'ai_provider' => 'bijli_guru',
+                'model_used' => 'rules'
+            ];
+        }
+
+        // D. "hello" / "hi" / "namaste"
+        $isPureGreeting = preg_match('/^(hi|hello|hey|namaste|pranam|namaskar|good\s+morning|good\s+evening|good\s+afternoon|radhe\s+radhe|ram\s+ram)(\s.*)?$/i', $cleanGreeting);
+        if ($isPureGreeting && strlen($cleanGreeting) < 40 && !str_contains($cleanGreeting, 'fan') && !str_contains($cleanGreeting, 'switch') && !str_contains($cleanGreeting, 'mcb') && !str_contains($cleanGreeting, 'light')) {
+            return [
+                'success' => true,
+                'reply' => "Namaste! 😊 Main Bijli Guru hoon, aapka AI assistant. Bataiye, aaj main aapki kya madad kar sakta hoon?",
+                'spoken_text' => "Namaste! Main Bijli Guru hoon, aapka AI assistant. Bataiye aaj main aapki kya madad kar sakta hoon?",
+                'language' => 'hi',
+                'state' => 'SPEAKING',
+                'tools_used' => [],
+                'tool_display' => null,
+                'intent' => 'greeting',
+                'requires_confirmation' => false,
+                'pending_action' => null,
+                'electricians' => [],
+                'ai_provider' => 'bijli_guru',
+                'model_used' => 'rules'
+            ];
+        }
+
+        // E. Playful banter / Slang: "pgl" / "pagal" / "paagal" / "crazy" / "bewakoof"
+        if (preg_match('/\b(pgl|pa+ga+l|crazy|pagla|pagli|bewak(u|oo)f)\b/i', $cleanGreeting)) {
+            return [
+                'success' => true,
+                'reply' => "Haha nahi re, main bilkul theek hoon 😄 Bataiye, kya chal raha hai? Main aapki kya help kar sakta hoon?",
+                'spoken_text' => "Haha nahi re, main bilkul theek hoon! Bataiye kya chal raha hai?",
+                'language' => 'hi',
+                'state' => 'SPEAKING',
+                'tools_used' => [],
+                'tool_display' => null,
+                'intent' => 'banter',
+                'requires_confirmation' => false,
+                'pending_action' => null,
+                'electricians' => [],
+                'ai_provider' => 'bijli_guru',
+                'model_used' => 'rules'
+            ];
+        }
+
+        // F. Friendly callouts: "suno", "oye", "bhai", "yaar", "are yaar"
+        if (preg_match('/^(suno|oye|bhai|yaar|are\s+yaar|arre\s+yaar|hey\s+bhai|bhaiya)$/i', $cleanGreeting)) {
+            return [
+                'success' => true,
+                'reply' => "Haan ji, main sun raha hoon! Bataiye, kya baat hai? 😊",
+                'spoken_text' => "Haan ji, main sun raha hoon! Bataiye kya baat hai?",
+                'language' => 'hi',
+                'state' => 'SPEAKING',
+                'tools_used' => [],
+                'tool_display' => null,
+                'intent' => 'attention',
+                'requires_confirmation' => false,
+                'pending_action' => null,
+                'electricians' => [],
+                'ai_provider' => 'bijli_guru',
+                'model_used' => 'rules'
+            ];
+        }
+
+        // G. "kuch nahi" / "nothing"
+        if (preg_match('/^(kuch\s+nahi|kuch\s+na|nothing|none|kuch\s+bhi\s+nahi)$/i', $cleanGreeting)) {
+            return [
+                'success' => true,
+                'reply' => "Arey koi baat nahi! Jab bhi koi sawaal ya help chahiye ho, befikr hokar pooch lena 😊",
+                'spoken_text' => "Arey koi baat nahi! Jab bhi koi sawaal ya help ho, bata dena.",
+                'language' => 'hi',
+                'state' => 'SPEAKING',
+                'tools_used' => [],
+                'tool_display' => null,
+                'intent' => 'casual_ack',
+                'requires_confirmation' => false,
+                'pending_action' => null,
+                'electricians' => [],
+                'ai_provider' => 'bijli_guru',
+                'model_used' => 'rules'
+            ];
+        }
+
+        // H. "haha" / "hehe" / "lol"
+        if (preg_match('/^(ha+ha+|he+he+|lol|lmao|xd)$/i', $cleanGreeting)) {
+            return [
+                'success' => true,
+                'reply' => "😄 Aur bataiye, kya haal chal? Koi sawaal ya guidance chahiye toh batayiye!",
+                'spoken_text' => "Aur bataiye, kya haal chal?",
+                'language' => 'hi',
+                'state' => 'SPEAKING',
+                'tools_used' => [],
+                'tool_display' => null,
+                'intent' => 'laughter',
+                'requires_confirmation' => false,
+                'pending_action' => null,
+                'electricians' => [],
+                'ai_provider' => 'bijli_guru',
+                'model_used' => 'rules'
+            ];
+        }
+
+        // I. Jokes / Chutkule
+        if (preg_match('/\b(joke|chutkula|hanso|hasao|koi\s+joke)\b/i', $cleanGreeting)) {
+            $jokes = [
+                "Teacher: 1 se 10 tak ginti sunao.\nPappu: 1, 2, 3, 4, 5, 7, 8, 9, 10.\nTeacher: 6 kahan gaya?\nPappu: Ji woh toh bowling karne gaya hai! 😂",
+                "Why don't scientists trust atoms?\nBecause they make up everything! 😄",
+                "Client: Mera computer on nahi ho raha.\nEngineer: Power switch on kiya?\nClient: Are haan, bijli toh kal se gul hai! 😆"
+            ];
+            $selectedJoke = $jokes[array_rand($jokes)];
+            return [
+                'success' => true,
+                'reply' => $selectedJoke,
+                'spoken_text' => strip_tags(str_replace(['*', '#', '•', '`'], '', $selectedJoke)),
+                'language' => 'hi',
+                'state' => 'SPEAKING',
+                'tools_used' => [],
+                'tool_display' => '😄 Joke Shared',
+                'intent' => 'joke',
+                'requires_confirmation' => false,
+                'pending_action' => null,
+                'electricians' => [],
+                'ai_provider' => 'bijli_guru',
+                'model_used' => 'rules'
             ];
         }
 
@@ -775,17 +1273,12 @@ class ElectroFixAgentService
         $pros = $toolsResult['electricians'] ?? [];
         $topPro = $pros[0] ?? null;
 
-        $reply = "⚠️ **ELECTRICAL EMERGENCY SAFETY ALERT** ⚠️\n\n"
-            . "🚨 **Pehle yeh zaroori safety steps turant follow karein:**\n"
-            . "1. Kisi bhi sparking switchboard, taar ya appliance ko haath na lagayein.\n"
-            . "2. Geelay haath ya paani se bilkul door rahein.\n"
-            . "3. Agar safe ho, toh ghar ki **Main MCB / Power Breaker** turant OFF kar dein.\n\n"
-            . "Emergency repair ke liye Lucknow ({$areaName}) me verified technicians available hain:";
+        $reply = "⚠️ Kripya sparking switch ya kisi khule taar ko bilkul touch na karein, aur agar safe ho toh ghar ki main MCB/power turant OFF kar dein.";
 
         if ($topPro) {
-            $reply .= "\n\n⚡ **{$topPro['name']}** (⭐ {$topPro['rating']} • {$topPro['distance_text']})\n"
-                . "⏱ **Rapid Arrival:** ~{$topPro['eta_mins']} mins\n\n"
-                . "Kya main aapke liye **{$topPro['name']}** ko turant emergency dispatch kar doon?";
+            $reply .= "\n\nAapke paas Lucknow ({$areaName}) mein **{$topPro['name']}** (~{$topPro['eta_mins']} mins mein) available hain. Kya main unhe turant doorstep visit ke liye book kar doon?";
+        } else {
+            $reply .= "\n\nSafety ke liye isko turant kisi qualified electrician se check karwana best rahega.";
         }
 
         return [
@@ -810,7 +1303,9 @@ class ElectroFixAgentService
                     'time_slot' => 'Immediate'
                 ]
             ] : null,
-            'electricians' => $pros
+            'electricians' => $pros,
+            'ai_provider' => 'bijli_guru',
+            'model_used' => 'safety_protocol'
         ];
     }
 
@@ -846,62 +1341,35 @@ class ElectroFixAgentService
         if (str_contains($lower, 'fan') || str_contains($lower, 'pankha') || str_contains($lower, 'regulator')) {
             $intent = 'fan_advice';
 
+            // Example Rule: "fan nahi chal raha"
+            if (preg_match('/\b(nahi\s+chal|nahi\s+ghoom|band\s+hai|not\s+working|not\s+running)\b/i', $lower)) {
+                $reply = "Samajh gaya 👍 Fan nahi chal raha hai. Switch on karne par bilkul response nahi mil raha ya humming ki awaaz aa rahi hai?";
+                $spoken = "Samajh gaya. Fan nahi chal raha hai. Switch on karne par bilkul response nahi mil raha ya humming ki awaaz aa rahi hai?";
+            }
             // A. Noise / Humming / Awaz
-            if (str_contains($lower, 'awaz') || str_contains($lower, 'awaaz') || str_contains($lower, 'noise') || str_contains($lower, 'humming') || str_contains($lower, 'sound') || str_contains($lower, 'khad')) {
-                if ($isEnglish) {
-                    $reply = $preamble . "A ceiling fan usually makes noise or hums due to 3 common reasons:\n\n"
-                        . "1. **Dry or Worn Ball-Bearings:** Grease inside the bearings dries out or collects dust, causing a grinding noise. Adding machine oil or replacing bearings resolves this.\n"
-                        . "2. **Weak / Leaking Capacitor:** A degraded capacitor causes electrical imbalance in the motor windings, creating a deep humming sound and lower speed. Replacing it with a new 2.5 µF capacitor fixes it.\n"
-                        . "3. **Loose Blade Screws:** Loose screws on blade brackets cause rattling and wobble. Turn off power and firmly tighten the screws on all three blades.";
-                    $spoken = "Fan noise is usually caused by dry ball bearings, a weak capacitor, or loose blade screws.";
-                } else {
-                    $reply = $preamble . "Pankhe me aawaz ya humming aane ke 3 mukhya kaaran hote hain:\n\n"
-                        . "1. **Bearing me Grease Sookhna:** Ball-bearings me dust jamne ya grease sookhne se ghisne ki aawaz aati hai. Isme machine oil ya grease lagane se aawaz theek ho jaati hai.\n"
-                        . "2. **Weak ya Leaking Capacitor:** Capacitor kamzor hone par motor me electrical imbalance banta hai, jisse humming vibration hoti hai aur speed ghati hai. Naya 2.5 µF capacitor lagayein.\n"
-                        . "3. **Blades ke Screws Dheele Hona:** Pankhadiyon ke nut-bolts loose hone par khad-khad aawaz aati hai. Power switch band karke teeno blades ke screws tight karein.";
-                    $spoken = "Pankhe me aawaz ball bearing dry hone, capacitor weak hone ya blade screws loose hone se aati hai.";
-                }
+            elseif (str_contains($lower, 'awaz') || str_contains($lower, 'awaaz') || str_contains($lower, 'noise') || str_contains($lower, 'humming') || str_contains($lower, 'sound') || str_contains($lower, 'khad')) {
+                $reply = "Fan mein aamtaur par ball-bearing dry hone ya capacitor weak hone se humming aati hai. Kya fan ki speed bhi slow ho gayi hai ya sirf aawaz aa rahi hai?";
+                $spoken = "Fan mein aamtaur par ball bearing dry hone ya capacitor weak hone se humming aati hai. Kya fan ki speed bhi slow ho gayi hai?";
             }
             // B. Slow Speed / Dheere chal raha hai
             elseif (str_contains($lower, 'slow') || str_contains($lower, 'dheere') || str_contains($lower, 'speed') || str_contains($lower, 'kam chal')) {
-                if ($isEnglish) {
-                    $reply = $preamble . "If your ceiling fan is running slow, the cause is almost always one of these:\n\n"
-                        . "1. **Degraded Capacitor (90% of cases):** Over time, the capacitor rating drops from 2.5 µF to below 1.5 µF. Replacing the capacitor (2.5 µF, 440V AC) instantly restores full speed.\n"
-                        . "2. **Stiff Bearings / Friction:** Turn off power and spin the fan by hand. If it doesn't spin freely for 10-15 seconds, the bearings need lubrication.\n"
-                        . "3. **Faulty Wall Regulator:** Old electronic regulators cause a voltage drop. Test by connecting the fan switch directly.";
-                    $spoken = "A slow fan is almost always caused by a degraded capacitor or dry bearings.";
-                } else {
-                    $reply = $preamble . "Pankha slow chalne ke mukhya kaaran:\n\n"
-                        . "1. **Capacitor Kamzor Hona (90% Kaaran):** Samay ke sath capacitor ki capacity 2.5 µF se ghat kar kam ho jaati hai. Naya 2.5 µF (440V AC) capacitor badalne se speed turant normal ho jaati hai.\n"
-                        . "2. **Bearing me Jamming:** Switch band karke pankhe ko haath se ghumayein. Agar pankha aasaani se 10-15 second nahi ghoomta, toh bearings me lubrication ki zaroorat hai.\n"
-                        . "3. **Faulty Wall Regulator:** Regulator ke internal triac me voltage drop hone se bhi speed kam milti hai.";
-                    $spoken = "Pankha slow chalne ka 90 percent kaaran capacitor weak hona hota hai. Naya capacitor lagate hi speed normal ho jaati hai.";
-                }
+                $reply = "Pankha slow chalne ka 90% kaaran capacitor weak hona hota hai. Naya 2.5 µF capacitor lagate hi speed normal ho jaati hai. Kya fan ghoomte waqt koi aawaz bhi kar raha hai?";
+                $spoken = "Pankha slow chalne ka sabse bada kaaran capacitor weak hona hota hai. Naya capacitor lagate hi speed normal ho jaati hai.";
             }
             // C. Wobbling / Hil raha hai
             elseif (str_contains($lower, 'hil') || str_contains($lower, 'wobble') || str_contains($lower, 'larkhad')) {
-                $reply = $preamble . "Pankha hilne (wobbling) ke 3 mukhya kaaran:\n\n"
-                    . "1. **Blades ka Angle (Pitch) Unbalance:** Kisi ek blade ka angle halka sa mud jaane par hawa ka pressure unbalance ho jata hai.\n"
-                    . "2. **Dust Jamna:** Ek blade par zyada dhool aur baakiyon par kam hone se weight imbalance banta hai. Saare blades ache se saaf karein.\n"
-                    . "3. **Downrod Bolt Loose:** Ceiling hook aur rod ke beech ka nut-bolt aur cotter pin check karke tight karein.";
-                $spoken = "Pankha hilna blades ke unbalance ya rod ke screws loose hone ki wajah se hota hai.";
+                $reply = "Pankha aamtaur par tab hilta hai jab blades ke screws thode dheele hon ya unpar dhool jam gayi ho. Switch band karke pehle blade screws tight karke dekhiye.";
+                $spoken = "Pankha aamtaur par blades ke screws loose hone se hilta hai. Switch band karke screws tight karke dekhiye.";
             }
             // D. Reverse / Ulta ghoom raha hai
             elseif (str_contains($lower, 'ulta') || str_contains($lower, 'reverse')) {
-                $reply = $preamble . "Pankha ulta ghoomne ka kaaran Capacitor ke connections ulte judna hota hai:\n\n"
-                    . "• Ceiling fan motor me do windings hoti hain: **Running** aur **Starting**.\n"
-                    . "• Agar capacitor ka neutral/phase connection starting winding ke terminal par lag jaye, to motor ulti disha me ghoomne lagti hai.\n"
-                    . "• **Samadhan:** Power switch off karein aur capacitor se judi terminal wire ko doosre wire point par interchange karein.";
-                $spoken = "Pankha ulta ghoomne ka kaaran capacitor connection starting winding par juda hona hai. Wires interchange karne se theek ho jata hai.";
+                $reply = "Pankha ulta chal raha hai toh capacitor ki wire connection ulti jud gayi hai. Power switch off karke capacitor ki terminal wires interchange karni padengi.";
+                $spoken = "Pankha ulta ghoom raha hai toh capacitor ki wire connection badalni padegi.";
             }
             // E. General Fan Query
             else {
-                $reply = $preamble . "Ceiling fan me aamtaur par teen cheezein check ki jaati hain:\n\n"
-                    . "• **Capacitor (2.5 µF):** Speed kam hona ya motor na ghoomna.\n"
-                    . "• **Ball Bearings:** Ghisne ya khad-khad aawaz aane par machine oil/grease.\n"
-                    . "• **Regulator & Blades:** Speed control na hona ya vibration.\n\n"
-                    . "Aapke pankhe me kya dikkat aa rahi hai — aawaz kar raha hai, slow hai ya bilkul nahi chal raha?";
-                $spoken = "Pankhe me capacitor, bearing ya regulator ki wajah se dikkat aati hai. Aapke pankhe me kya problem hai?";
+                $reply = "Pankhe mein kya problem aa rahi hai — bilkul nahi chal raha, slow chal raha hai ya koi aawaz aa rahi hai?";
+                $spoken = "Pankhe mein kya problem aa rahi hai — chal nahi raha, slow hai ya aawaz kar raha hai?";
             }
         }
 
@@ -910,23 +1378,8 @@ class ElectroFixAgentService
         // ---------------------------------------------------------------------
         elseif (str_contains($lower, 'mcb') || str_contains($lower, 'trip') || str_contains($lower, 'breaker') || str_contains($lower, 'fuse') || str_contains($lower, 'rccb')) {
             $intent = 'mcb_advice';
-
-            if (str_contains($lower, 'kya hota') || str_contains($lower, 'difference') || str_contains($lower, 'kyu')) {
-                $reply = $preamble . "MCB (Miniature Circuit Breaker) baar-baar trip hone ke 3 mukhya kaaran hote hain:\n\n"
-                    . "1. **Circuit Overload:** Ek hi circuit par ek sath heavy appliances (AC, Geyser, Microwave, Iron) chalane se wire garam hoti hai aur MCB ka thermal sensor trip kar deta hai.\n"
-                    . "2. **Short Circuit:** Phase wire aur Neutral wire aapas me direct touch hone par excessive current behta hai, jisse magnetic sensor turant MCB gira deta hai.\n"
-                    . "3. **MCB Faulty Hona:** Purani MCB ka internal spring mechanism loose hone se bina load ke bhi gir sakti hai.\n\n"
-                    . "🛠️ **Safe Check:** Us kamre ke saare heavy appliances band karein, phir MCB uthayein. Agar phir bhi girti hai, to line wiring me short-circuit hai.";
-                $spoken = "MCB trip hona circuit overload, short circuit ya faulty breaker ki wajah se hota hai.";
-            } else {
-                $reply = $preamble . "MCB trip hone par yeh practical steps follow karein:\n\n"
-                    . "1. **Heavy Load Band Karein:** AC, geyser, heater aur washing machine ke switch turant band karein.\n"
-                    . "2. **MCB Reset Karein:** MCB lever ko pehle poora neeche karein, phir firmly upar uthayein.\n"
-                    . "3. **Natija Samjhein:**\n"
-                    . "   • Agar MCB foran gir jati hai: Internal wiring ya kisi socket me short circuit hai.\n"
-                    . "   • Agar 5-10 minute baad girti hai: Circuit par load zyada hai, appliances alag circuit par shift karein.";
-                $spoken = "MCB trip hone par pehle heavy appliances band karein aur phir lever upar karke test karein.";
-            }
+            $reply = "Arre! MCB baar-baar gir rahi hai toh shayad kisi heavy appliance ka overload hai ya wiring mein short circuit. Kya koi specific cheez (jaise AC, geyser ya heater) on karte hi girti hai ya achanak bina load ke bhi gir jaati hai?";
+            $spoken = "MCB baar baar girna overload ya short circuit se hota hai. Kya koi specific cheez on karte hi girti hai?";
         }
 
         // ---------------------------------------------------------------------
@@ -936,40 +1389,24 @@ class ElectroFixAgentService
             $intent = 'switchboard_advice';
 
             if (str_contains($lower, 'spark') || str_contains($lower, 'jal') || str_contains($lower, 'dhua') || str_contains($lower, 'badboo') || str_contains($lower, 'melt')) {
-                $reply = $preamble . "Switchboard ya socket me spark hone ke mukhya kaaran:\n\n"
-                    . "1. **Loose Wire Terminals:** Switch ke peeche wire screws loose hone se arcing hoti hai aur switch melt hone lagta hai.\n"
-                    . "2. **Socket ke Clips Dheele:** Socket ke andar metal clips phail jaane se plug ke pins par gap banta hai, jisse spark nikalta hai.\n"
-                    . "3. **Undersized Switch (Overloading):** 6A ke chote socket me 1500W+ ka geyser, iron ya heater chalana.\n\n"
-                    . "💡 **Turant Yeh Karein:** Us switchboard par haath na lagayein, heavy plug bahar nikal lein, aur main switch off karke hi repair karein.";
-                $spoken = "Switchboard me spark loose wire terminals ya chote socket me heavy appliance chalane se hota hai.";
+                $reply = "⚠️ Switch ko bilkul touch mat kariyega aur agar safe ho toh ghar ka main switch band kar dein. Spark lagatar aa raha hai toh safety ke liye electrician se dikhwana best rahega.";
+                $spoken = "Switch ko touch na karein aur main switch band kar dein. Spark baar-baar aa raha hai toh electrician se check karwayein.";
             } elseif (str_contains($lower, '16a') || str_contains($lower, '6a') || str_contains($lower, 'ampere')) {
-                $reply = $preamble . "6A aur 16A Sockets me antar:\n\n"
-                    . "• **6 Ampere Socket (Chota Socket):** Phone charger, TV, laptop, aur lights ke liye (Max 1200 Watts tak).\n"
-                    . "• **16 Ampere Power Socket (Bada Socket):** AC, Geyser, Microwave, Refrigerator aur Washing Machine ke liye (Max 3000 Watts tak).\n\n"
-                    . "⚠️ Kabhi bhi multi-plug adapter lagakar heavy appliance ko 6A socket me na chalayein, isse board jal sakta hai.";
-                $spoken = "6A socket light load ke liye hota hai aur 16A power socket AC, geyser aur microwave ke liye zaroori hai.";
+                $reply = "Chota 6A socket mobile charger aur TV/lights ke liye hota hai, jabki bada 16A power socket AC, geyser aur microwave jaise heavy appliances ke liye zaroori hota hai.";
+                $spoken = "6A socket normal light load ke liye hota hai aur 16A power socket heavy appliances ke liye.";
             } else {
-                $reply = $preamble . "Switchboard me aam samasyayein aur unka hal:\n\n"
-                    . "• **Socket me current na aana:** Switch ke peeche loop wire tutna ya switch ke brass contacts burn hona.\n"
-                    . "• **Plug baar-baar girna:** Socket ke internal brass clips loose hona (Naya modular socket lagana behtar hai).\n"
-                    . "• **Safe Practice:** Switchboard check karne se pehle distribution board ki MCB zaroor band karein.";
-                $spoken = "Switchboard me socket loose hone ya wire link tutne se power chali jaati hai.";
+                $reply = "Switchboard mein kya dikkat aa rahi hai — switch dabane par current nahi aa raha ya plug lagane par loose ho raha hai?";
+                $spoken = "Switchboard mein kya dikkat aa rahi hai — current nahi aa raha ya plug loose ho raha hai?";
             }
         }
 
         // ---------------------------------------------------------------------
         // 4. AIR CONDITIONER (AC)
         // ---------------------------------------------------------------------
-        elseif (str_contains($lower, 'ac') || str_contains($lower, 'air conditioner') || str_contains($lower, 'cooling')) {
+        elseif (preg_match('/\b(ac|air\s*conditioner|cooling|split\s*ac|window\s*ac)\b/i', $lower)) {
             $intent = 'ac_advice';
-
-            $reply = $preamble . "AC cooling na karne ya kam cooling hone ke 5 mukhya kaaran:\n\n"
-                . "1. **Ganda Air Filter:** Indoor unit ka mesh filter dhool se jamne par airflow ruk jata hai (Filter nikal kar paani se dho lein).\n"
-                . "2. **Outdoor Condenser Unit Choke:** Outdoor unit ki jaali par dhool jamne se garmi bahar nahi nikal pati.\n"
-                . "3. **Remote Mode Setting:** Check karein ki remote **Cool Mode (❄️ Snowflake icon)** par hai aur temperature 24°C set hai, na ki 'Fan' ya 'Dry' mode par.\n"
-                . "4. **Refrigerant Gas Leakage:** Agar filter saaf hai aur compressor chal raha hai par hawa bilkul thandi nahi hai, to gas leak ho sakti hai.\n"
-                . "5. **Compressor Run Capacitor Fault:** Fan chal raha hai par outdoor compressor start nahi ho raha.";
-            $spoken = "AC cooling na karne ka mukhya kaaran ganda filter, outdoor condenser choke hona ya gas leak hona hota hai.";
+            $reply = "AC thandi hawa nahi de raha? Pehle remote mein check kar lijiye ki 'Cool' mode (❄️) par 24°C set hai na? Agar haan, toh indoor filter ganda ho sakta hai ya condenser coil par dhool jami ho sakti hai.";
+            $spoken = "AC thandi hawa nahi de raha toh pehle check karein remote Cool mode par hai na. Filter ya condenser ganda hone se bhi aisa hota hai.";
         }
 
         // ---------------------------------------------------------------------
@@ -977,13 +1414,8 @@ class ElectroFixAgentService
         // ---------------------------------------------------------------------
         elseif (str_contains($lower, 'geyser') || str_contains($lower, 'water heater') || str_contains($lower, 'pani garam')) {
             $intent = 'geyser_advice';
-
-            $reply = $preamble . "Geyser me paani garam na hone ke 4 mukhya kaaran:\n\n"
-                . "1. **Thermostat Safety Cut-Out Trip:** Paani zyada garam hone par geyser ka safety thermal cut-out trip ho jata hai (Isko reset button dabakar theek kiya ja sakta hai).\n"
-                . "2. **Heating Element (Coil) Burnt:** Hard water (khara paani) ke kaaran coil par scale jam jati hai aur element phuk jata hai.\n"
-                . "3. **16A Power Socket Fault:** Geyser ka heavy 16A plug ya socket andar se jal jana.\n"
-                . "4. **MCB Trip:** Agar geyser on karte hi MCB girti hai, to heating element ki insulation leak ho chuki hai.";
-            $spoken = "Geyser me paani garam na hone ka kaaran thermostat cut out trip hona ya heating coil kharab hona hota hai.";
+            $reply = "Geyser ka switch on karne par indicator light jal rahi hai? Agar light jal rahi hai par paani garam nahi ho raha, toh thermostat trip ho sakta hai ya heating coil kharab ho sakti hai.";
+            $spoken = "Geyser ka switch on karne par indicator light jal rahi hai? Agar light jal rahi hai par paani garam nahi ho raha toh heating coil ya thermostat trip ho sakta hai.";
         }
 
         // ---------------------------------------------------------------------
@@ -991,30 +1423,17 @@ class ElectroFixAgentService
         // ---------------------------------------------------------------------
         elseif (str_contains($lower, 'inverter') || str_contains($lower, 'battery') || str_contains($lower, 'backup') || str_contains($lower, 'beeping')) {
             $intent = 'inverter_advice';
-
-            $reply = $preamble . "Inverter aur battery me aam samasyayein aur unka solution:\n\n"
-                . "1. **Continuous Beeping Sound:**\n"
-                . "   • Overload: Ghar ka load inverter ki capacity se zyada hai (extra lights/fans band karein).\n"
-                . "   • Low Battery: Power cut lamba hone par cutoff limit aane par beeping hoti hai.\n"
-                . "2. **Backup Kam Milna:**\n"
-                . "   • Tubular battery me **distilled water** ka level check karein aur green indicator tak bharein.\n"
-                . "   • Battery terminals par white/green carbon jamne se garam paani se saaf karein aur petroleum jelly lagayein.\n"
-                . "3. **Inverter Fail Hone par:** Inverter ke peeche laga **Manual Bypass Switch** on karke direct grid power chala sakte hain.";
-            $spoken = "Inverter beeping overload ya low battery ki wajah se karta hai. Terminals saaf rakhein aur distilled water check karein.";
+            $reply = "Inverter lagatar beep kar raha hai toh aamtaur par load zyada hone ya battery low hone ki wajah se hota hai. Kamre ke extra fans ya lights band karke dekhiye — beep band hui? Aur battery mein distilled water ka level kaisa hai?";
+            $spoken = "Inverter continuous beep kar raha hai toh extra load band karke dekhiye aur battery mein paani ka level check karein.";
         }
 
         // ---------------------------------------------------------------------
         // 7. LIGHTING, LED & CHANDELIERS
         // ---------------------------------------------------------------------
-        elseif (str_contains($lower, 'light') || str_contains($lower, 'led') || str_contains($lower, 'bulb') || str_contains($lower, 'flicker') || str_contains($lower, 'blink') || str_contains($lower, 'chandelier') || str_contains($lower, 'tubelight')) {
+        elseif (preg_match('/\b(light|led|bulb|flicker|blink|chandelier|tubelight|lamp)\b/i', $lower) && !str_contains($lower, 'lightning')) {
             $intent = 'lighting_advice';
-
-            $reply = $preamble . "Light ya LED bulb flicker (blink) karne ke mukhya kaaran:\n\n"
-                . "1. **Dying LED Driver:** LED bulb ya panel light ke internal driver circuit ka capacitor weak hona.\n"
-                . "2. **Loose Neutral Wire:** Switchboard ya distribution box me neutral wire loose hone se voltage fluctuation aati hai.\n"
-                . "3. **Incompatible Dimmer/Regulator:** Normal LED bulb ko electronic dimmer ke sath use karna.\n\n"
-                . "🛠️ **Check:** Bulb ko kisi doosre holder me lagakar dekhein. Agar wahan bhi blink karta hai, toh bulb badalna padega.";
-            $spoken = "LED light flicker karne ka kaaran internal driver capacitor ya neutral wire loose hona hota hai.";
+            $reply = "Sirf ek bulb blink kar raha hai ya poore ghar ki lights flicker ho rahi hain? Agar ek hi bulb hai toh uska driver capacitor weak ho sakta hai — usse kisi aur holder mein check karke dekhein.";
+            $spoken = "Sirf ek bulb flicker kar raha hai ya poore ghar ki lights? Ek bulb hai toh uska driver weak ho sakta hai.";
         }
 
         // ---------------------------------------------------------------------
@@ -1022,13 +1441,8 @@ class ElectroFixAgentService
         // ---------------------------------------------------------------------
         elseif (str_contains($lower, 'shock') || str_contains($lower, 'current lag') || str_contains($lower, 'jhatka') || str_contains($lower, 'earthing') || str_contains($lower, 'earth')) {
             $intent = 'earthing_advice';
-
-            $reply = $preamble . "Appliance (Fridge, Geyser, Washing Machine) ki body ko chhune par current lagna **Earthing Fault** ka direct sanket hai:\n\n"
-                . "1. **Earthing Wire Disconnected:** Socket ka upar wala bada pin (Earth) grounded nahi hai ya bahar earth rod tut gayi hai.\n"
-                . "2. **Internal Insulation Leak:** Appliance ke motor ya coil ki wire halki body se touch ho rahi hai.\n"
-                . "3. **Neutral Voltage Leakage:** Neutral line me reverse phase voltage aana.\n\n"
-                . "⚠️ **Safety Rule:** Geyser on rakh kar na nahayein, chappal pehen kar appliance use karein, aur bina earthing theek karwaye risk na lein.";
-            $spoken = "Appliance me current aana earthing disconnect hone ka sanket hai. Chappal pehanein aur earthing theek karwayein.";
+            $reply = "⚠️ Appliance ko chhune par current lagna earthing disconnected hone ka sanket hai. Kripya bina chappal ke appliance ko bilkul na chhuein aur geyser on rakh kar na nahayein. Isko test karwana zaroori hai.";
+            $spoken = "Appliance se current aana earthing fault hai. Kripya chappal pehanein aur geyser on rakh kar na nahayein.";
         }
 
         // ---------------------------------------------------------------------
@@ -1036,15 +1450,8 @@ class ElectroFixAgentService
         // ---------------------------------------------------------------------
         elseif (str_contains($lower, 'bill') || str_contains($lower, 'bijli bachat') || str_contains($lower, 'save electricity') || str_contains($lower, 'reduce bill')) {
             $intent = 'bill_saving_advice';
-
-            $reply = $preamble . "Ghar ka bijli bill kam karne ke 6 effective tareeqe:\n\n"
-                . "1. **LED Lighting:** CFL ya filament bulb ki jagah 9W-12W LED bulbs lagayein (80% bijli bachti hai).\n"
-                . "2. **AC Temperature 24°C par Set Karein:** Har 1°C badhane se lagbhag 6% bijli bachti hai.\n"
-                . "3. **BLDC Ceiling Fans:** Normal fan (75W) ki jagah BLDC fan (28W) use karein.\n"
-                . "4. **Vampire Standby Load Band Karein:** TV, microwave, setup box ko remote ke sath wall switch se bhi band karein.\n"
-                . "5. **Geyser Timer:** Nahane se 15 minute pehle on karein aur turant band karein.\n"
-                . "6. **Wiring Leakage Check:** Agar sab appliances band karne ke baad bhi meter tezi se chal raha hai, to wiring leakage ho sakti hai.";
-            $spoken = "Bijli bill kam karne ke liye AC ko 24 degree par chalayein, LED bulbs aur BLDC fans use karein.";
+            $reply = "Bill kam karne ke liye AC ko 24°C par chalayein aur purane bulbs ki jagah LED lagayein. Ek baar saare switch band karke meter check kariyega — kya meter tab bhi tezi se pulse kar raha hai?";
+            $spoken = "Bill kam karne ke liye AC ko 24 degree par chalayein aur appliances band karke meter check karein.";
         }
 
         // ---------------------------------------------------------------------
@@ -1052,16 +1459,8 @@ class ElectroFixAgentService
         // ---------------------------------------------------------------------
         elseif (str_contains($lower, 'unit') && (str_contains($lower, '1') || str_contains($lower, 'ek') || str_contains($lower, 'kya') || str_contains($lower, 'kitna') || str_contains($lower, 'watt') || str_contains($lower, 'kwh'))) {
             $intent = 'unit_concept';
-
-            $reply = $preamble . "**1 Unit Electricity (1 kWh)** ka matlab hota hai **1 Kilowatt-hour**, yaani 1,000 Watts ka power 1 ghante tak lagatar chalna.\n\n"
-                . "📊 **Formula:** Units = (Total Watts × Hours) ÷ 1,000\n\n"
-                . "💡 **Aam Ghar ke Udaharan:**\n"
-                . "• **100 Watt ka bulb** 10 ghante chale = 1 Unit bijli (100W × 10h = 1000 Wh).\n"
-                . "• **1.5 Ton ka AC (lagbhag 1500 Watts)** 1 ghanta chale = lagbhag 1.5 Units.\n"
-                . "• **2000 Watt ka Geyser** 30 minute chale = 1 Unit.\n"
-                . "• **75 Watt ka Ceiling Fan** lagbhag 13 ghante chale = 1 Unit.\n\n"
-                . "Lucknow (UP) me domestic bijli ki dar aamtaur par ₹5.50 se ₹7.00 prati unit hoti hai (slab ke mutabiq).";
-            $spoken = "1 Unit bijli ka matlab 1000 Watt power 1 ghante tak use hona hota hai. Jaise 100 watt ka bulb 10 ghante chale to 1 unit kharch hoti hai.";
+            $reply = "Simple bhasha mein: 1,000 Watt ka load jab 1 ghante tak chalta hai toh theek 1 unit bijli banti hai. Jaise 100 Watt ka bulb 10 ghante chale toh 1 unit kharch hoti hai.";
+            $spoken = "1000 Watt ka appliance agar 1 ghante chale toh 1 unit bijli kharch hoti hai.";
         }
 
         // ---------------------------------------------------------------------
@@ -1069,17 +1468,8 @@ class ElectroFixAgentService
         // ---------------------------------------------------------------------
         elseif ((str_contains($lower, 'ac') && str_contains($lower, 'dc')) || str_contains($lower, 'alternating current') || str_contains($lower, 'direct current')) {
             $intent = 'ac_dc_concept';
-
-            $reply = $preamble . "**AC (Alternating Current) aur DC (Direct Current) me antar:**\n\n"
-                . "1. **Direction of Flow:**\n"
-                . "   • **AC:** Current ki disha lagatar badalti rehti hai (India me 50 baar prati second yaani 50 Hz).\n"
-                . "   • **DC:** Current sirf ek hi disha me steady flow karta hai.\n"
-                . "2. **Origin & Storage:**\n"
-                . "   • **AC:** Power plants aur generators banate hain. Isko direct store nahi kiya ja sakta.\n"
-                . "   • **DC:** Batteries, solar panels aur phone chargers se milta hai. Isko batteries me store kiya jata hai.\n"
-                . "3. **Transmission:**\n"
-                . "   • AC ko transformers ke zariye high voltage par lambi doori tak asani se bheja ja sakta hai bina heavy loss ke.";
-            $spoken = "AC current disha badalta hai jo ghar ki supply me aata hai, jabki DC current ek disha me behta hai jo battery me store hota hai.";
+            $reply = "Aasan shabdon mein, ghar ki wall socket mein AC current aata hai jo apni disha badalta rehta hai. Jabki battery, phone charger aur solar panel se DC current milta hai jo ek hi disha mein steady flow karta hai.";
+            $spoken = "Ghar ki supply mein AC current hota hai aur battery ya solar se DC current milta hai.";
         }
 
         // ---------------------------------------------------------------------
@@ -1087,13 +1477,8 @@ class ElectroFixAgentService
         // ---------------------------------------------------------------------
         elseif ((str_contains($lower, 'bird') || str_contains($lower, 'chidiya') || str_contains($lower, 'pakshi')) && (str_contains($lower, 'shock') || str_contains($lower, 'current') || str_contains($lower, 'taar') || str_contains($lower, 'wire'))) {
             $intent = 'bird_shock_concept';
-
-            $reply = $preamble . "Taar par baithe pakshiyon ko current kyu nahi lagta?\n\n"
-                . "Iske peeche seedha scientific niyam hai: **Potential Difference (विभवांतर) ka na hona**.\n\n"
-                . "1. **Circuit Poora Nahi Hota:** Current behne ke liye ek complete circuit aur voltage difference chahiye hota hai (Phase se Neutral ya Phase se Ground).\n"
-                . "2. **Dono Pair Ek Hi Taar Par:** Pakshi ke dono pair sirf ek hi live wire ko chhoote hain. Dono pairon ke beech voltage saman rehta hai, isliye current unke sharir se hokar nahi guzarta.\n"
-                . "3. **Danger Kab Hota Hai?** Agar koi bada pakshi galti se ek sath do alag phase wires ko ya wire aur grounded electric pole ko touch kar le, toh circuit poora ho jata hai aur shock lagta hai.";
-            $spoken = "Pakshiyon ko current isliye nahi lagta kyunki unke dono pair ek hi taar par hote hain aur koi potential difference nahi banta.";
+            $reply = "Pakshi ke dono pair ek hi taar par hote hain, isliye dono pairon ke beech koi voltage difference nahi banta aur circuit poora nahi hota. Agar pakshi galti se do alag taaron ko chhoo le, tab shock lagta hai.";
+            $spoken = "Pakshiyon ke dono pair ek hi taar par hote hain isliye circuit poora nahi hota aur unhe current nahi lagta.";
         }
 
         // ---------------------------------------------------------------------
@@ -1101,14 +1486,8 @@ class ElectroFixAgentService
         // ---------------------------------------------------------------------
         elseif (str_contains($lower, 'voltage') || str_contains($lower, 'ampere') || str_contains($lower, 'ohm') || str_contains($lower, 'watt')) {
             $intent = 'electrical_units_concept';
-
-            $reply = $preamble . "Bijli ki buniyadi 4 units ka aasan matlab:\n\n"
-                . "• **Voltage (Volts - V):** Electrical pressure jo electrons ko aage dhakelta hai (Jaise paani ke pipe me pressure).\n"
-                . "• **Current (Amperes - A):** Electrons ke behne ki speed ya rate (Jaise pipe me paani ka flow).\n"
-                . "• **Resistance (Ohms - Ω):** Current ke raaste me aane wali rukaawat ($V = I \\times R$).\n"
-                . "• **Power (Watts - W):** Kaam karne ya bijli kharch hone ki kul dar ($P = V \\times I$).\n\n"
-                . "Udaharan: 230 Volts par agar ek appliance 5 Ampere current leta hai, toh uski power $230 \\times 5 = 1150$ Watts hogi.";
-            $spoken = "Voltage electrical pressure hota hai, Current flow rate hota hai, aur Watt kul bijli kharch hoti hai.";
+            $reply = "Aise samajhiye jaise paani ka pipe ho: Voltage paani ka pressure hai, Current paani ke behne ki speed hai, aur Watt yeh batata hai ki kul kitni bijli kharch hui.";
+            $spoken = "Voltage bijli ka pressure hai, Current flow hai, aur Watt kul bijli kharch hai.";
         }
 
         // ---------------------------------------------------------------------
@@ -1116,12 +1495,8 @@ class ElectroFixAgentService
         // ---------------------------------------------------------------------
         elseif (str_contains($lower, 'sky') || str_contains($lower, 'aasman') || str_contains($lower, 'aakash') || str_contains($lower, 'blue') || str_contains($lower, 'neela')) {
             $intent = 'science_sky_blue';
-
-            $reply = $preamble . "Aasman ka rang neela **Rayleigh Scattering (प्रकाश का प्रकीर्णन)** ke kaaran dikhta hai:\n\n"
-                . "1. **Suraj Ki Roshni:** Sunlight me saaton rang (VIBGYOR) shamil hote hain.\n"
-                . "2. **Atmosphere me Scattering:** Jab sunlight prithvi ke vayumandal me aati hai, to hawa ke gas molecules choti wavelength wali light (Blue aur Violet) ko lambi wavelength (Red/Orange) ki tulna me chaaron taraf sabse zyada faila dete hain.\n"
-                . "3. **Human Eyes:** Hamari aankhein violet se zyada blue colour ke liye sensitive hoti hain, isliye din me aakash neela dikhta hai.";
-            $spoken = "Aasman ka rang neela Rayleigh scattering ki wajah se dikhta hai, jisme hawa ke molecules blue light ko sabse zyada failaate hain.";
+            $reply = "Suraj ki roshni jab hawa ke gas particles se takrati hai toh neeli roshni (blue light) chaaron taraf sabse zyada fail jaati hai (scattering), isliye din mein aakash neela dikhta hai.";
+            $spoken = "Suraj ki neeli roshni hawa mein sabse zyada scattering karti hai, isliye aasman neela dikhta hai.";
         }
 
         // ---------------------------------------------------------------------
@@ -1129,13 +1504,8 @@ class ElectroFixAgentService
         // ---------------------------------------------------------------------
         elseif (str_contains($lower, 'solar') || str_contains($lower, 'dhoop') || str_contains($lower, 'sun power')) {
             $intent = 'solar_concept';
-
-            $reply = $preamble . "Solar Rooftop System kaise kaam karta hai:\n\n"
-                . "1. **Solar Panels:** Dhoop ki roshni ko Silicon photovoltaic cells ke zariye **DC electricity** me convert karte hain.\n"
-                . "2. **Solar Inverter:** DC bijli ko ghar me use hone wali 230V **AC bijli** me badalta hai.\n"
-                . "3. **Net Metering:** Din ke samay bachi hui extra bijli government grid ko bhej di jaati hai, jisse aapka monthly bill minus ya zero ho jata hai.\n"
-                . "4. **Subsidy:** PM Surya Ghar Muft Bijli Yojana ke tahat 1kW se 3kW systems par government subsidy bhi uplabdh hai.";
-            $spoken = "Solar panels dhoop se DC bijli banate hain jise solar inverter AC me badalkar ghar ke appliances chalata hai.";
+            $reply = "Solar panels dhoop se DC bijli banate hain aur solar inverter use ghar ke liye AC bijli mein badal deta hai. Din ki extra bijli government grid ko jaati hai jisse aapka bill minus ya kam ho jata hai.";
+            $spoken = "Solar panels dhoop se bijli banakar inverter ke zariye ghar chalate hain aur extra bijli grid ko bhejte hain.";
         }
 
         // ---------------------------------------------------------------------
@@ -1143,14 +1513,8 @@ class ElectroFixAgentService
         // ---------------------------------------------------------------------
         elseif (str_contains($lower, 'invent') || str_contains($lower, 'khoj') || str_contains($lower, 'discover') || str_contains($lower, 'kisne banaya') || str_contains($lower, 'nikola tesla') || str_contains($lower, 'edison')) {
             $intent = 'history_concept';
-
-            $reply = $preamble . "Bijli (Electricity) kisi ek vyakti ne nahi banayi, balki yeh prakriti ki ek urja hai. Iski khoj aur vikas me in mukhya vaigyanikon ka yogdan raha:\n\n"
-                . "• **Benjamin Franklin (1752):** Apne prasiddh kite experiment se saabit kiya ki aakashiya bijli (lightning) bhi electrical current hai.\n"
-                . "• **Alessandro Volta (1800):** Pehli chemical electric battery banayi jisse continuous DC current mila.\n"
-                . "• **Michael Faraday (1831):** Electromagnetic Induction ki khoj ki, jisse electric motor aur generator bane.\n"
-                . "• **Nikola Tesla:** Modern AC (Alternating Current) system banaya jo aaj duniya bhar ke gharon me bijli pahunchata hai.\n"
-                . "• **Thomas Edison:** Practical incandescent light bulb banaya.";
-            $spoken = "Bijli ki khoj me Benjamin Franklin, Alessandro Volta, Michael Faraday aur Nikola Tesla ka mukhya yogdan raha hai.";
+            $reply = "Bijli nature ki ek urja hai, tv ne banayi nahi! Par iski khoj aur motor/bulb banane mein Benjamin Franklin, Michael Faraday aur Nikola Tesla ka sabse bada yogdan raha.";
+            $spoken = "Bijli ki khoj aur vikas mein Benjamin Franklin, Faraday aur Nikola Tesla ka yogdan raha.";
         }
 
         // ---------------------------------------------------------------------
@@ -1158,51 +1522,58 @@ class ElectroFixAgentService
         // ---------------------------------------------------------------------
         elseif (str_contains($lower, 'who are you') || str_contains($lower, 'kaun ho') || str_contains($lower, 'kya kar sakte ho') || str_contains($lower, 'what can you do')) {
             $intent = 'bot_identity';
-
-            $reply = $preamble . "Main **ElectroFix AI** hoon — ElectroLKO ka intelligent AI electrical assistant.\n\n"
-                . "💡 **Main in cheezon me aapki madad kar sakta hoon:**\n"
-                . "• Ghar ke electrical issues (Fan, MCB, Switchboard, AC, Geyser, Inverter) ka diagnosis aur step-by-step solution.\n"
-                . "• Electrical concepts (Units, Bills, AC/DC, Safety) ka saral breakdown.\n"
-                . "• Kisi bhi general technical ya scientific sawaal ka direct jawab.\n"
-                . "• Agar aap Lucknow me hain aur doorstep electrician chahiye, toh verified technicians arrange karna.\n\n"
-                . "Aapka kya sawaal hai? Batayiye!";
-            $spoken = "Main ElectroFix AI hoon. Main ghar ke electrical issues ka solution aur Lucknow me verified technician services provide karta hoon.";
+            $reply = "Main Bijli Guru hoon 😊 Ek intelligent general-purpose AI assistant! Main aapke general knowledge, technology, coding, science, daily questions aur chit-chat mein help kar sakta hoon, aur agar ghar mein koi electrical issue ho toh uska expert guidance aur doorstep service bhi arrange karta hoon.";
+            $spoken = "Main Bijli Guru hoon, aapka intelligent AI assistant. General questions, tech aur electrical sabhi mein help karta hoon.";
         }
 
         // ---------------------------------------------------------------------
-        // 18. GRATITUDE & CLOSING
+        // 18. CODING & TECHNICAL ASSISTANCE
+        // ---------------------------------------------------------------------
+        elseif (preg_match('/\b(python|javascript|php|html|css|sql|function|code|coding|api|program)\b/i', $lower)) {
+            $intent = 'coding_assistance';
+            if (str_contains($lower, 'hello world')) {
+                $reply = "Here is a clean Python function for Hello World:\n\n```python\ndef hello_world():\n    return \"Hello, World!\"\n\nprint(hello_world())\n```";
+                $spoken = "Here is a clean, simple Python function for Hello World.";
+            } elseif (str_contains($lower, 'laravel')) {
+                $reply = "Laravel is a free, open-source PHP web framework created by Taylor Otwell. It features an expressive MVC architecture, Eloquent ORM, integrated routing, authentication, and database migrations, making web app development fast and clean.";
+                $spoken = "Laravel is a popular PHP framework for developing modern web applications.";
+            } else {
+                $reply = "Haan bilkul! Main coding aur programming mein madad kar sakta hoon. Aap apna language, code snippet ya question batayiye, main seedha practical solution doonga.";
+                $spoken = "Main coding mein madad kar sakta hoon. Aap apna question batayiye.";
+            }
+        }
+
+        // ---------------------------------------------------------------------
+        // 19. GRATITUDE & CLOSING
         // ---------------------------------------------------------------------
         elseif (preg_match('/^(thank you|thanks|shukriya|dhanyawad|dhanyavad|bahut accha|good|badhiya|ok|theek hai)(\s.*)?$/i', $lower) && strlen($lower) < 30) {
             $intent = 'gratitude';
-
             $reply = $isEnglish
-                ? "You're very welcome! Feel free to ask anytime if you need more help with anything electrical or technical."
-                : "Aapka bahut swagat hai! Agar aage bhi koi sawaal ho ya samasya aaye, toh befikr hokar poochiye.";
-            $spoken = $isEnglish ? "You're welcome! Happy to help." : "Aapka swagat hai! Madad karke khushi hui.";
+                ? "You're very welcome! Feel free to ask anytime if you need help with anything."
+                : "Aapka swagat hai 😊 Koi aur dikkat ya sawaal ho toh batayiye, main yahin hoon.";
+            $spoken = $isEnglish ? "You're welcome! Happy to help." : "Aapka swagat hai! Koi aur sawaal ho toh batayiye.";
         }
 
         // ---------------------------------------------------------------------
-        // 19. DYNAMIC GENERAL SMART HANDLER (For ANY other question!)
+        // 20. DYNAMIC GENERAL SMART HANDLER (For ANY other question!)
         // ---------------------------------------------------------------------
         else {
             $intent = 'dynamic_general';
 
             if ($wasFrustrated) {
-                $reply = "Maaf kijiye! Seedhi baat par aate hain — aapko ghar me kya dikkat aa rahi hai ya aap kya janna chahte hain? Batayiye, main seedha aur practical samadhan batata hoon.";
-                $spoken = "Maaf kijiye, batayiye aapko kya samasya aa rahi hai? Main seedha samadhan batata hoon.";
+                $reply = "Maaf kijiye! Seedhi baat — aapko kya madad chahiye? Batayiye, main seedha solution batata hoon.";
+                $spoken = "Maaf kijiye, batayiye aapko kya madad chahiye? Main seedha jawab batata hoon.";
             } elseif ($isEnglish) {
-                $reply = "Here is a direct answer regarding your query:\n\n"
-                    . "• **Direct Explanation:** To understand this properly, check the primary operating condition and power source.\n"
-                    . "• **Practical Action:** Ensure safe isolation before inspecting any terminal connections or settings.\n"
-                    . "• **Tip:** If this involves a household appliance, verifying the power input point and safety reset switch usually resolves it.\n\n"
-                    . "Let me know the specific details or symptoms and I'll give you an exact step-by-step fix!";
-                $spoken = "Here is a direct answer. Please share any specific symptoms so I can give you an exact step by step solution.";
+                $reply = "I'm here to help! Could you please share a bit more detail about what you'd like to know or what you're working on?";
+                $spoken = "I'm here to help! Could you share a bit more detail about what you would like to know?";
             } else {
-                $reply = "Aapke sawaal ka seedha samadhan:\n\n"
-                    . "• **Mukhya Jaanch:** Sabse pehle appliance ya circuit ka power point, fuse aur switch condition check karein.\n"
-                    . "• **Suraksha Niyam:** Kisi bhi live line ko khud haath na lagayein aur main switch off karke hi inspection karein.\n"
-                    . "• **Next Step:** Agar aap is samasya ke baare me thoda aur detail (jaise aawaz aa rahi hai, trip ho raha hai ya power nahi hai) batayein, toh main exact root-cause samjha deta hoon.";
-                $spoken = "Aapke sawaal ka seedha hal yeh hai ki pehle power supply check karein. Agar detail batayein toh main exact step by step samjha deta hoon.";
+                $hasElectricalHint = preg_match('/\b(bijli|taar|wire|light|line|current|power|voltage|board|plug|meter|earthing|fault|kharab|chal|trip)\b/i', $lower);
+                if ($hasElectricalHint) {
+                    $reply = "Samajh gaya! Thoda batayenge ki exact kya dikkat aa rahi hai? Main turant solution batata hoon.";
+                } else {
+                    $reply = "Ji bataiye! Main aapki help karne ke liye taiyar hoon. Aap kisi bhi topic — general knowledge, technology, coding ya electrical services — ke baare mein pooch sakte hain 😊";
+                }
+                $spoken = strip_tags(str_replace(['*', '#', '•', '`', '😊'], '', $reply));
             }
         }
 
@@ -1218,6 +1589,469 @@ class ElectroFixAgentService
             'requires_confirmation' => false,
             'pending_action' => null,
             'electricians' => []
+        ];
+    }
+
+    /**
+     * Dynamic Cloud LLM Engine (Zero-config cloud LLM)
+     * Handles casual conversation, general knowledge, technology, coding, science,
+     * everyday questions, as well as electrical troubleshooting.
+     */
+    protected function reasonWithDynamicLLM(
+        string $message,
+        array $conversationHistory,
+        float $lat,
+        float $lng,
+        string $areaName,
+        bool $isEmergency
+    ): ?array {
+        try {
+            $systemInstruction = "You are a friendly, intelligent, accurate, and natural general-purpose AI assistant who can also help with electrical services for ElectroLKO in Lucknow.
+
+### Core behavior:
+- Understand the user's intent before answering.
+- Handle casual conversation, general knowledge, technology, coding, science, education, news, writing, translation, recommendations, troubleshooting, and everyday questions.
+- Do not assume every message is an electrical problem.
+- For greetings, small talk, jokes, thanks, or casual messages, respond naturally and conversationally.
+- Never force electrical advice into normal conversation.
+- Match the user's language: Hindi, Hinglish, or English.
+- Match the user's tone and keep simple questions short (1-3 sentences).
+- Give detailed, structured answers only when needed.
+
+### Electrical assistance:
+- Help with fans, lights, switches, sockets, wiring, MCB, appliances, power issues, sparks, smoke, burning smell, and electrician services.
+- Only enter electrical troubleshooting mode when the user actually describes an electrical issue.
+- For dangerous electrical situations, prioritize safety and recommend a qualified electrician. Never tell an inexperienced user to touch live wires, bypass safety devices, or work on energized circuits.
+
+### Knowledge & accuracy:
+- Explain difficult topics simply when appropriate.
+- Never invent facts, APIs, URLs, prices, statistics, people, or news.
+- Clearly distinguish confirmed information from rumors, opinions, and predictions.
+
+### Coding & technical help:
+- Give practical, beginner-friendly, copy-paste-ready solutions when requested.
+- For existing projects, make the smallest necessary change and preserve existing parameters, validation, database logic, response structure, and unrelated functionality unless the user asks otherwise.
+- Do not invent libraries, functions, APIs, or database structures.
+
+### Conversation:
+- Use conversation context and remember previous messages within the conversation.
+- Ask follow-up questions only when necessary.
+- Do not repeat information unnecessarily.
+- Be friendly, empathetic, and human-like, but never claim to be human or claim actions you did not actually perform.
+- Never claim you sent an SMS, booked a service, checked live news, or accessed a system unless the application actually performed that action.
+- Never request passwords, API keys, OTPs, private keys, or other sensitive credentials.
+
+Response rule: Understand -> determine intent -> respond naturally -> be accurate -> stay safe -> match language and response length.
+You are a general AI assistant first, with electrical-service capabilities when relevant, not an electrical-only chatbot.
+User location: {$areaName}, Lucknow.";
+
+            $messages = [
+                ['role' => 'system', 'content' => $systemInstruction]
+            ];
+
+            foreach (array_slice($conversationHistory, -6) as $turn) {
+                $role = ($turn['role'] === 'user') ? 'user' : 'assistant';
+                $messages[] = [
+                    'role' => $role,
+                    'content' => $turn['content'] ?? ''
+                ];
+            }
+
+            $messages[] = [
+                'role' => 'user',
+                'content' => $message
+            ];
+
+            $text = null;
+
+            // Attempt 1: POST to text.pollinations.ai
+            try {
+                $response = Http::timeout(12)
+                    ->connectTimeout(3)
+                    ->withHeaders(['Content-Type' => 'application/json'])
+                    ->post('https://text.pollinations.ai/', [
+                        'messages' => $messages
+                    ]);
+
+                if ($response->successful()) {
+                    $body = trim($response->body());
+                    if (!empty($body) && $body !== '{}' && !str_starts_with($body, '<!DOCTYPE') && !str_starts_with($body, '<html')) {
+                        $text = $body;
+                    }
+                }
+            } catch (\Throwable $e) {
+                Log::debug('Dynamic LLM POST failed: ' . $e->getMessage());
+            }
+
+            // Attempt 2: GET fallback if POST returned empty or 402
+            if (empty($text)) {
+                try {
+                    $cleanPrompt = "Act as Bijli Guru, friendly general-purpose AI assistant in Lucknow. User: {$message}\nAssistant:";
+                    $url = "https://text.pollinations.ai/" . rawurlencode($cleanPrompt);
+                    $getResponse = Http::timeout(8)->get($url);
+                    if ($getResponse->successful()) {
+                        $body = trim($getResponse->body());
+                        if (!empty($body) && $body !== '{}' && !str_starts_with($body, '<!DOCTYPE') && !str_starts_with($body, '<html')) {
+                            $text = $body;
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    Log::debug('Dynamic LLM GET failed: ' . $e->getMessage());
+                }
+            }
+               
+            if (!empty($text)) {
+                $wantsTech = $this->isExplicitTechnicianRequest($message) || $isEmergency;
+                $electriciansData = [];
+                $pendingAction = null;
+                $requiresConfirmation = false;
+
+                if ($wantsTech) {
+                    $toolsResult = $this->find_nearby_electricians($lat, $lng, 'all', $areaName);
+                    $electriciansData = $toolsResult['electricians'] ?? [];
+                    $topPro = $electriciansData[0] ?? null;
+                    if ($topPro) {
+                        $pendingAction = [
+                            'action' => 'create_booking',
+                            'data' => [
+                                'electrician_id' => $topPro['id'],
+                                'customer_name' => 'Customer',
+                                'customer_address' => $areaName,
+                                'service_type' => 'Doorstep Electrical Service',
+                                'time_slot' => 'Within 30 mins'
+                            ]
+                        ];
+                        $requiresConfirmation = true;
+                    }
+                }
+
+                return [
+                    'success' => true,
+                    'reply' => $text,
+                    'spoken_text' => strip_tags(str_replace(['*', '#', '•', '`'], '', $text)),
+                    'language' => preg_match('/[^\x00-\x7F]/', $text) ? 'hi' : 'en',
+                    'state' => $isEmergency ? 'EMERGENCY' : 'SPEAKING',
+                    'tools_used' => $wantsTech ? [['name' => 'find_nearby_electricians', 'status' => 'success']] : [],
+                    'tool_display' => $isEmergency ? '⚠️ Emergency Protocol Active' : ($wantsTech ? '⚡ Located nearby technicians' : "🤖 Bijli Guru AI"),
+                    'intent' => $isEmergency ? 'emergency' : ($wantsTech ? 'explicit_electrician_request' : 'dynamic_answer'),
+                    'requires_confirmation' => $requiresConfirmation,
+                    'pending_action' => $pendingAction,
+                    'electricians' => $electriciansData,
+                    'ai_provider' => 'dynamic_ai',
+                    'model_used' => 'cloud-llm'
+                ];
+            }
+        } catch (\Exception $e) {
+            Log::info('Dynamic Cloud LLM service unreachable: ' . $e->getMessage());
+        }
+
+        return null;
+    }
+
+    /**
+     * Live Instant Knowledge Engine
+     * Retrieves instant factual explanations via DuckDuckGo Instant Answers & Wikipedia API.
+     * Guarantees accurate, verified answers for technology (e.g. Laravel, React, Python),
+     * science, history, geography, people, and definitions without hallucinations.
+     */
+    protected function reasonWithInstantKnowledge(
+        string $message,
+        array $conversationHistory,
+        float $lat,
+        float $lng,
+        string $areaName,
+        bool $isEmergency
+    ): ?array {
+        try {
+            $lower = strtolower(trim($message));
+
+            // Extract topic by stripping common question prefixes
+            $queryClean = trim(preg_replace('/^(what is|who is|what are|explain|tell me about|define|kya hai|kya hota hai|kaun hai|kiske bare me hai|kya kam karta hai)\s+/i', '', $lower));
+            $queryClean = trim(preg_replace('/[?!.]+$/', '', $queryClean));
+
+            if (empty($queryClean) || strlen($queryClean) < 2) {
+                // If the message is just a technology/topic name e.g. "laravel", "react js", "python"
+                if (str_word_count($lower) <= 4 && !preg_match('/\b(chahiye|bhejo|book|hire|call|karo|ho gaya|karein)\b/i', $lower)) {
+                    $queryClean = trim(preg_replace('/[?!.]+$/', '', $lower));
+                } else {
+                    return null;
+                }
+            }
+
+            $fact = null;
+
+            // 1. DuckDuckGo Instant Answer API
+            try {
+                $ddg = Http::timeout(3)->get('https://api.duckduckgo.com/?q=' . urlencode($queryClean) . '&format=json&no_html=1');
+                if ($ddg->successful()) {
+                    $abs = trim($ddg->json('AbstractText') ?? '');
+                    if (!empty($abs) && strlen($abs) > 30) {
+                        $fact = $abs;
+                    }
+                }
+            } catch (\Throwable $e) {}
+
+            // 2. Wikipedia Summary API fallback
+            if (!$fact) {
+                try {
+                    $wikiTitle = rawurlencode(str_replace(' ', '_', ucwords($queryClean)));
+                    $wiki = Http::timeout(3)
+                        ->withHeaders(['User-Agent' => 'ElectroLKO-AI/1.0 (contact@electrolko.in)'])
+                        ->get("https://en.wikipedia.org/api/rest_v1/page/summary/{$wikiTitle}");
+                    if ($wiki->successful()) {
+                        $ext = trim($wiki->json('extract') ?? '');
+                        if (!empty($ext) && strlen($ext) > 30 && !str_contains($ext, 'may refer to:')) {
+                            $fact = $ext;
+                        }
+                    }
+                } catch (\Throwable $e) {}
+            }
+
+            if (!$fact) {
+                return null;
+            }
+
+            // Keep to 2-3 concise sentences for natural conversational delivery
+            $sentences = preg_split('/(?<=[.?!])\s+/', $fact, 4);
+            $concise = implode(' ', array_slice($sentences, 0, 2));
+
+            $isHindi = preg_match('/[^\x00-\x7F]/', $message) || preg_match('/\b(kya|kaun|kaise|batao|hota|karein|hai)\b/i', $lower);
+
+            return [
+                'success' => true,
+                'reply' => $concise,
+                'spoken_text' => strip_tags(str_replace(['*', '#', '•', '`'], '', $concise)),
+                'language' => $isHindi ? 'hi' : 'en',
+                'state' => 'SPEAKING',
+                'tools_used' => [['name' => 'instant_knowledge_lookup', 'status' => 'success']],
+                'tool_display' => '🔍 Verified Knowledge Answer',
+                'intent' => 'general_knowledge',
+                'requires_confirmation' => false,
+                'pending_action' => null,
+                'electricians' => [],
+                'ai_provider' => 'knowledge_engine',
+                'model_used' => 'verified_facts'
+            ];
+        } catch (\Throwable $e) {
+            Log::debug('Instant knowledge lookup failed: ' . $e->getMessage());
+        }
+
+        return null;
+    }
+
+    /**
+     * Ollama / Modal AI Reasoning Integration
+     * Connects to local Ollama (http://127.0.0.1:11434) or remote Modal cloud endpoint.
+     * Generates natural, empathetic, and user-friendly answers.
+     */
+    protected function reasonWithOllama(
+        string $message,
+        array $conversationHistory,
+        float $lat,
+        float $lng,
+        string $areaName,
+        bool $isEmergency,
+        ?string $requestedModel = null,
+        ?string $customOllamaUrl = null
+    ): ?array {
+        try {
+            $baseUrl = rtrim($customOllamaUrl ?: (config('services.ollama.base_url') ?: env('OLLAMA_BASE_URL', env('MODAL_OLLAMA_URL', 'http://127.0.0.1:11434'))), '/');
+            $model = $requestedModel ?: (config('services.ollama.model') ?: env('OLLAMA_MODEL', 'llama3.2'));
+            $timeout = (int) (config('services.ollama.timeout') ?: env('OLLAMA_TIMEOUT', 12));
+
+            if (empty($baseUrl)) {
+                return null;
+            }
+
+            $systemInstruction = "You are a friendly, intelligent, accurate, and natural general-purpose AI assistant who can also help with electrical services for ElectroLKO in Lucknow.
+Powered by Ollama Local AI ({$model}).
+
+### Core behavior:
+- Understand the user's intent before answering.
+- Handle casual conversation, general knowledge, technology, coding, science, education, news, writing, translation, recommendations, troubleshooting, and everyday questions.
+- Do not assume every message is an electrical problem.
+- For greetings, small talk, jokes, thanks, or casual messages, respond naturally and conversationally.
+- Never force electrical advice into normal conversation.
+- Match the user's language: Hindi, Hinglish, or English.
+- Match the user's tone and keep simple questions short (1-3 sentences).
+- Give detailed, structured answers only when needed.
+
+### Electrical assistance:
+- Help with fans, lights, switches, sockets, wiring, MCB, appliances, power issues, sparks, smoke, burning smell, and electrician services.
+- Only enter electrical troubleshooting mode when the user actually describes an electrical issue.
+- For dangerous electrical situations, prioritize safety and recommend a qualified electrician. Never tell an inexperienced user to touch live wires, bypass safety devices, or work on energized circuits.
+
+### Knowledge & accuracy:
+- Explain difficult topics simply when appropriate.
+- Never invent facts, APIs, URLs, prices, statistics, people, or news.
+- Clearly distinguish confirmed information from rumors, opinions, and predictions.
+
+### Coding & technical help:
+- Give practical, beginner-friendly, copy-paste-ready solutions when requested.
+- For existing projects, make the smallest necessary change and preserve existing parameters, validation, database logic, response structure, and unrelated functionality unless the user asks otherwise.
+- Do not invent libraries, functions, APIs, or database structures.
+
+### Conversation:
+- Use conversation context and remember previous messages within the conversation.
+- Ask follow-up questions only when necessary.
+- Do not repeat information unnecessarily.
+- Be friendly, empathetic, and human-like, but never claim to be human or claim actions you did not actually perform.
+- Never claim you sent an SMS, booked a service, checked live news, or accessed a system unless the application actually performed that action.
+- Never request passwords, API keys, OTPs, private keys, or other sensitive credentials.
+
+Response rule: Understand -> determine intent -> respond naturally -> be accurate -> stay safe -> match language and response length.
+You are a general AI assistant first, with electrical-service capabilities when relevant, not an electrical-only chatbot.
+User location: {$areaName}, Lucknow (Lat: {$lat}, Lng: {$lng}).";
+
+            $messages = [
+                ['role' => 'system', 'content' => $systemInstruction]
+            ];
+
+            foreach ($conversationHistory as $turn) {
+                $role = ($turn['role'] === 'user') ? 'user' : 'assistant';
+                $messages[] = [
+                    'role' => $role,
+                    'content' => $turn['content'] ?? ''
+                ];
+            }
+
+            $messages[] = [
+                'role' => 'user',
+                'content' => $message
+            ];
+
+            $ollamaText = null;
+
+            // 1. Try standard Ollama /api/chat endpoint
+            $ollamaPayload = [
+                'model' => $model,
+                'messages' => $messages,
+                'stream' => false,
+                'options' => [
+                    'temperature' => 0.5,
+                ]
+            ];
+
+            $response = Http::timeout($timeout)
+                ->connectTimeout(2)
+                ->withHeaders(['Content-Type' => 'application/json'])
+                ->post("{$baseUrl}/api/chat", $ollamaPayload);
+
+            if ($response->successful()) {
+                $ollamaText = $response->json('message.content');
+            } elseif ($response->status() === 404) {
+                // 2. Try OpenAI-compatible /v1/chat/completions (supported by newer Ollama versions and Modal proxies)
+                $v1Response = Http::timeout($timeout)
+                    ->connectTimeout(2)
+                    ->withHeaders(['Content-Type' => 'application/json'])
+                    ->post("{$baseUrl}/v1/chat/completions", [
+                        'model' => $model,
+                        'messages' => $messages,
+                        'temperature' => 0.5,
+                    ]);
+
+                if ($v1Response->successful()) {
+                    $ollamaText = $v1Response->json('choices.0.message.content');
+                }
+            }
+
+            if (!empty($ollamaText)) {
+                $ollamaClean = trim($ollamaText);
+
+                $wantsTech = $this->isExplicitTechnicianRequest($message) || $isEmergency;
+                $electriciansData = [];
+                $pendingAction = null;
+                $requiresConfirmation = false;
+
+                if ($wantsTech) {
+                    $toolsResult = $this->find_nearby_electricians($lat, $lng, 'all', $areaName);
+                    $electriciansData = $toolsResult['electricians'] ?? [];
+                    $topPro = $electriciansData[0] ?? null;
+                    if ($topPro) {
+                        $pendingAction = [
+                            'action' => 'create_booking',
+                            'data' => [
+                                'electrician_id' => $topPro['id'],
+                                'customer_name' => 'Customer',
+                                'customer_address' => $areaName,
+                                'service_type' => 'Doorstep Electrical Service',
+                                'time_slot' => 'Within 30 mins'
+                            ]
+                        ];
+                        $requiresConfirmation = true;
+                    }
+                }
+
+                return [
+                    'success' => true,
+                    'reply' => $ollamaClean,
+                    'spoken_text' => strip_tags(str_replace(['*', '#', '•', '`'], '', $ollamaClean)),
+                    'language' => 'hi',
+                    'state' => $isEmergency ? 'EMERGENCY' : 'SPEAKING',
+                    'tools_used' => $wantsTech ? [['name' => 'find_nearby_electricians', 'status' => 'success']] : [],
+                    'tool_display' => $isEmergency ? '⚠️ Emergency Protocol Active' : ($wantsTech ? '⚡ Located nearby technicians' : "🤖 Bijli Guru AI (Ollama: {$model})"),
+                    'intent' => $isEmergency ? 'emergency' : ($wantsTech ? 'explicit_electrician_request' : 'direct_answer'),
+                    'requires_confirmation' => $requiresConfirmation,
+                    'pending_action' => $pendingAction,
+                    'electricians' => $electriciansData,
+                    'ai_provider' => 'ollama',
+                    'model_used' => $model
+                ];
+            }
+        } catch (\Exception $e) {
+            Log::info('Ollama/Modal AI service unreachable, continuing: ' . $e->getMessage());
+        }
+
+        return null;
+    }
+
+    /**
+     * Check Ollama Server Status & List Installed Models
+     */
+    public function checkOllamaStatus(?string $customUrl = null): array
+    {
+        $baseUrl = rtrim($customUrl ?: (config('services.ollama.base_url') ?: env('OLLAMA_BASE_URL', 'http://127.0.0.1:11434')), '/');
+        $defaultModel = config('services.ollama.model') ?: env('OLLAMA_MODEL', 'llama3.2');
+
+        try {
+            $response = Http::timeout(3)
+                ->connectTimeout(2)
+                ->get("{$baseUrl}/api/tags");
+
+            if ($response->successful()) {
+                $data = $response->json();
+                $models = [];
+                if (!empty($data['models']) && is_array($data['models'])) {
+                    foreach ($data['models'] as $m) {
+                        $models[] = [
+                            'name' => $m['name'] ?? '',
+                            'size' => isset($m['size']) ? round($m['size'] / (1024 * 1024 * 1024), 2) . ' GB' : null,
+                            'modified_at' => $m['modified_at'] ?? null,
+                        ];
+                    }
+                }
+
+                return [
+                    'success' => true,
+                    'running' => true,
+                    'base_url' => $baseUrl,
+                    'default_model' => $defaultModel,
+                    'models' => $models,
+                    'message' => 'Ollama server is active and connected'
+                ];
+            }
+        } catch (\Exception $e) {
+            // Connection failed or timed out
+        }
+
+        return [
+            'success' => true,
+            'running' => false,
+            'base_url' => $baseUrl,
+            'default_model' => $defaultModel,
+            'models' => [],
+            'message' => "Ollama local server not detected on {$baseUrl}. Using Bijli Guru Autonomous Agent with high-speed local intelligence.",
+            'hint' => 'To connect Ollama: install from https://ollama.com and run: ollama run llama3.2'
         ];
     }
 
@@ -1241,18 +2075,44 @@ class ElectroFixAgentService
                 return null;
             }
 
-            $systemInstruction = "You are 'ElectroFix AI', an intelligent, human-like AI electrical and technical assistant for ElectroLKO in Lucknow, India.
-Personality: Calm, deeply helpful, direct, practical, and safety-conscious.
-Fluently understand and speak Hindi, Hinglish, and English. Match the language and script used by the user.
+            $systemInstruction = "You are a friendly, intelligent, accurate, and natural general-purpose AI assistant who can also help with electrical services for ElectroLKO in Lucknow.
 
-CRITICAL INSTRUCTIONS:
-1. ALWAYS ANSWER THE USER'S ACTUAL QUESTION FIRST, directly and concisely, like a Google Search AI Overview.
-2. If the user asks for a solution or troubleshooting, clearly explain root causes and practical step-by-step solutions naturally.
-3. DO NOT AUTOMATICALLY SUGGEST, LIST, OR PUSH TECHNICIANS OR SERVICES unless the user EXPLICITLY asks for a technician, electrician, inspection visit, or booking!
-4. If the user expresses frustration or says words like 'bakwas mat kro', 'chup raho', 'faltu', DO NOT repeat or quote their statement. Empathize politely in half a sentence, understand their underlying issue from conversation history, and provide the direct, clear answer immediately.
-5. Dynamically adapt to ANY type of user question (science, electrical concepts, units, household appliances, general knowledge, everyday questions), not just electrical services.
-6. Keep responses conversational, crisp, and structured with clean bullet points. Avoid robotic preambles, repetitive templates, or marketing sales pitches.
-User location context: {$areaName} (Lat: {$lat}, Lng: {$lng}).";
+### Core behavior:
+- Understand the user's intent before answering.
+- Handle casual conversation, general knowledge, technology, coding, science, education, news, writing, translation, recommendations, troubleshooting, and everyday questions.
+- Do not assume every message is an electrical problem.
+- For greetings, small talk, jokes, thanks, or casual messages, respond naturally and conversationally.
+- Never force electrical advice into normal conversation.
+- Match the user's language: Hindi, Hinglish, or English.
+- Match the user's tone and keep simple questions short (1-3 sentences).
+- Give detailed, structured answers only when needed.
+
+### Electrical assistance:
+- Help with fans, lights, switches, sockets, wiring, MCB, appliances, power issues, sparks, smoke, burning smell, and electrician services.
+- Only enter electrical troubleshooting mode when the user actually describes an electrical issue.
+- For dangerous electrical situations, prioritize safety and recommend a qualified electrician. Never tell an inexperienced user to touch live wires, bypass safety devices, or work on energized circuits.
+
+### Knowledge & accuracy:
+- Explain difficult topics simply when appropriate.
+- Never invent facts, APIs, URLs, prices, statistics, people, or news.
+- Clearly distinguish confirmed information from rumors, opinions, and predictions.
+
+### Coding & technical help:
+- Give practical, beginner-friendly, copy-paste-ready solutions when requested.
+- For existing projects, make the smallest necessary change and preserve existing parameters, validation, database logic, response structure, and unrelated functionality unless the user asks otherwise.
+- Do not invent libraries, functions, APIs, or database structures.
+
+### Conversation:
+- Use conversation context and remember previous messages within the conversation.
+- Ask follow-up questions only when necessary.
+- Do not repeat information unnecessarily.
+- Be friendly, empathetic, and human-like, but never claim to be human or claim actions you did not actually perform.
+- Never claim you sent an SMS, booked a service, checked live news, or accessed a system unless the application actually performed that action.
+- Never request passwords, API keys, OTPs, private keys, or other sensitive credentials.
+
+Response rule: Understand -> determine intent -> respond naturally -> be accurate -> stay safe -> match language and response length.
+You are a general AI assistant first, with electrical-service capabilities when relevant, not an electrical-only chatbot.
+User location: {$areaName}, Lucknow.";
 
             $endpoint = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
 

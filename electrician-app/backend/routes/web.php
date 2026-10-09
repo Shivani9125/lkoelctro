@@ -6,10 +6,20 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::get('/directory', function () {
+    return view('welcome');
+});
+
 Route::get('/app', function () {
-    return response()->file(public_path('app/index.html'));
+    if (file_exists(public_path('app/index.html'))) {
+        return response()->file(public_path('app/index.html'));
+    }
+    return view('welcome');
 });
 
 Route::get('/app/{any}', function () {
-    return response()->file(public_path('app/index.html'));
+    if (file_exists(public_path('app/index.html'))) {
+        return response()->file(public_path('app/index.html'));
+    }
+    return view('welcome');
 })->where('any', '.*');

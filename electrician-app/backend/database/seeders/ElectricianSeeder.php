@@ -197,7 +197,9 @@ class ElectricianSeeder extends Seeder
         ];
 
         // Ensure clear prior data if re-seeding
+        \Illuminate\Support\Facades\Schema::disableForeignKeyConstraints();
         Electrician::truncate();
+        \Illuminate\Support\Facades\Schema::enableForeignKeyConstraints();
 
         $phoneCounter = 9812340001;
 
@@ -228,12 +230,39 @@ class ElectricianSeeder extends Seeder
                 $email = strtolower($fName . '.' . $lName . $i . '@electrofix.in');
                 $address = $landmarks[$i] . ', Lucknow, Uttar Pradesh';
 
+                $specialtiesPool = [
+                    'Fan Repair & Capacitor Replacement',
+                    'MCB Tripping & Short Circuit Fix',
+                    'Modular Switchboard & Sockets',
+                    'Full House Concealed Conduit Wiring',
+                    'Inverter & Tubular Battery Setup',
+                    'False Ceiling LED & Chandelier Fitting',
+                    'Geyser & AC Heavy Power Points',
+                    '24/7 Rapid Emergency Electrical Fix'
+                ];
+                $experiencesPool = ['5+ Years', '7+ Years', '9+ Years', '11+ Years', '14+ Years'];
+                $badgesPool = ['Govt Certified A-Grade', 'Master Wireman', 'Rapid SOS Specialist', 'ISI Quality Verified', 'Senior Technician'];
+                $pricesPool = ['₹99', '₹149', '₹199', '₹249', '₹299', '₹499'];
+
+                $specialization = $specialtiesPool[$i % count($specialtiesPool)];
+                $experience = $experiencesPool[$i % count($experiencesPool)];
+                $badge = $badgesPool[$i % count($badgesPool)];
+                $startingPrice = $pricesPool[$i % count($pricesPool)];
+                $rating = round(4.7 + (($i % 4) * 0.08), 2);
+                $completedJobs = 120 + ($i * 17);
+
                 Electrician::create([
                     'name' => $fullName,
                     'phone' => $phone,
                     'email' => $email,
                     'address' => $address,
                     'area' => $areaName,
+                    'specialization' => $specialization,
+                    'experience' => $experience,
+                    'rating' => $rating,
+                    'completed_jobs' => $completedJobs,
+                    'starting_price' => $startingPrice,
+                    'badge' => $badge,
                     'latitude' => round($baseLat + $latOffset, 7),
                     'longitude' => round($baseLng + $lngOffset, 7),
                     'status' => 'active',
